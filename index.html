@@ -1,689 +1,497 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Harvester — CropAccess AgriTech</title>
 <style>
-  :root {
-    --green-dark: #1a4731;
-    --green: #2d7a4f;
-    --green-light: #4caf50;
-    --green-pale: #e8f5e9;
-    --amber: #f59e0b;
-    --amber-light: #fef3c7;
-    --red: #ef4444;
-    --red-light: #fee2e2;
-    --blue: #3b82f6;
-    --blue-light: #dbeafe;
-    --purple: #8b5cf6;
-    --purple-light: #ede9fe;
-    --text: #1f2937;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-    --bg: #f9fafb;
-    --card: #ffffff;
-    --sidebar-w: 220px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
+header{background:linear-gradient(135deg,#1a4731,#2d7a4f);color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+header h1{font-size:22px;font-weight:800;letter-spacing:.3px}
+header h1 em{font-style:normal;font-weight:400;font-size:13px;opacity:.7;margin-left:8px}
+.tabs{display:flex;gap:4px;background:rgba(0,0,0,.2);border-radius:10px;padding:4px}
+.tab{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;color:rgba(255,255,255,.7);cursor:pointer;border:none;background:none;transition:.15s}
+.tab:hover{color:#fff}
+.tab.active{background:#fff;color:#1a4731}
+main{max-width:960px;margin:0 auto;padding:24px 20px}
+.page{display:none}
+.page.active{display:block}
 
-  #sidebar {
-    width: var(--sidebar-w); background: var(--green-dark); color: #fff;
-    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
-  }
-  .sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.12); }
-  .sidebar-logo h1 { font-size: 18px; font-weight: 700; letter-spacing: .5px; }
-  .sidebar-logo span { font-size: 11px; opacity: .6; display: block; margin-top: 2px; }
-  .sidebar-nav { flex: 1; padding: 12px 0; }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500;
-    border-left: 3px solid transparent; transition: all .15s; opacity: .75;
-  }
-  .nav-item:hover { background: rgba(255,255,255,.08); opacity: 1; }
-  .nav-item.active { background: rgba(255,255,255,.12); border-left-color: #4caf50; opacity: 1; }
-  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-  .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.12); font-size: 12px; opacity: .5; }
+/* Cards & forms */
+.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.add-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.add-row input,.add-row select{border:1.5px solid #ddd;border-radius:10px;padding:10px 14px;font-size:14px;background:#fff;outline:none;transition:.15s}
+.add-row input:focus,.add-row select:focus{border-color:#2d7a4f}
+.add-row input{flex:1;min-width:180px}
+.add-row select{min-width:120px}
+textarea{width:100%;border:1.5px solid #ddd;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;resize:vertical;min-height:90px;outline:none;transition:.15s}
+textarea:focus{border-color:#2d7a4f}
+.btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:.15s}
+.btn-green{background:#2d7a4f;color:#fff}
+.btn-green:hover{background:#1a4731}
+.btn-green:active{transform:scale(.97)}
 
-  #main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-  .topbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-  .topbar h2 { font-size: 18px; font-weight: 700; color: var(--green-dark); }
-  .topbar-date { font-size: 13px; color: var(--text-muted); }
-  .content { padding: 28px; flex: 1; }
+/* Tags */
+.tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.tag-feature{background:#dbeafe;color:#2563eb}
+.tag-bug{background:#fee2e2;color:#dc2626}
+.tag-infra{background:#ede9fe;color:#7c3aed}
+.tag-research{background:#fef3c7;color:#d97706}
+.tag-high{background:#fee2e2;color:#dc2626}
+.tag-medium{background:#fef3c7;color:#d97706}
+.tag-low{background:#dbeafe;color:#2563eb}
+.tag-dev{background:#dbeafe;color:#2563eb}
+.tag-testing{background:#fef3c7;color:#d97706}
+.tag-deployment{background:#d1fae5;color:#059669}
+.tag-planning{background:#ede9fe;color:#7c3aed}
 
-  .view { display: none; }
-  .view.active { display: block; }
+/* Items */
+.item{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #eee;border-radius:12px;margin-bottom:8px;background:#fff;transition:.15s;animation:fadeIn .25s}
+.item:hover{border-color:#c8e6c9}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.item-text{flex:1;font-size:14px;font-weight:500}
+.item-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.x-btn{width:28px;height:28px;border-radius:8px;border:none;background:#f3f4f6;color:#9ca3af;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.x-btn:hover{background:#fee2e2;color:#dc2626}
 
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+/* Checkbox */
+.check{width:22px;height:22px;border-radius:7px;border:2px solid #d1d5db;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;background:#fff}
+.check.on{background:#2d7a4f;border-color:#2d7a4f}
+.check.on::after{content:'✓';color:#fff;font-size:13px;font-weight:800}
+.done-text{text-decoration:line-through;opacity:.45}
 
-  .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
-  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
-  .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
-  .stat-val { font-size: 32px; font-weight: 800; margin: 4px 0 2px; }
-  .stat-sub { font-size: 12px; color: var(--text-muted); }
-  .stat.green .stat-val { color: var(--green); }
-  .stat.amber .stat-val { color: var(--amber); }
-  .stat.red .stat-val { color: var(--red); }
-  .stat.blue .stat-val { color: var(--blue); }
+/* Pipeline columns */
+.pipeline-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.col{background:#f3f4f6;border-radius:14px;padding:14px;min-height:200px}
+.col-head{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.col-head .cnt{background:rgba(0,0,0,.1);border-radius:99px;padding:2px 8px;font-size:11px}
+.col-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:.15s}
+.col-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.col-card .title{font-size:13px;font-weight:600;margin-bottom:6px}
+.col-card .meta{display:flex;gap:6px;align-items:center}
 
-  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .section-title { font-size: 14px; font-weight: 700; color: var(--green-dark); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
-  .progress-bar-wrap { margin-bottom: 10px; }
-  .progress-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-  .progress-track { background: #f3f4f6; border-radius: 9999px; height: 8px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 9999px; background: var(--green-light); transition: width .4s; }
-  .progress-fill.amber { background: var(--amber); }
+/* Milestone */
+.ms-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.ms-dot.not-started{background:#d1d5db}.ms-dot.in-progress{background:#3b82f6}.ms-dot.done{background:#22c55e}.ms-dot.blocked{background:#ef4444}
+.ms-badge{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer}
+.ms-badge.not-started{background:#f3f4f6;color:#6b7280}.ms-badge.in-progress{background:#dbeafe;color:#2563eb}.ms-badge.done{background:#d1fae5;color:#059669}.ms-badge.blocked{background:#fee2e2;color:#dc2626}
 
-  .add-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-  .add-bar input, .add-bar select { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: var(--card); }
-  .add-bar input { flex: 1; min-width: 200px; }
-  .btn { padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
-  .btn-primary { background: var(--green); color: #fff; }
-  .btn-primary:hover { background: var(--green-dark); }
-  .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat{background:#fff;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#6b7280}
+.stat-num{font-size:30px;font-weight:800;margin:4px 0}
+.stat-num.green{color:#2d7a4f}.stat-num.blue{color:#3b82f6}.stat-num.amber{color:#d97706}.stat-num.red{color:#ef4444}
 
-  .kanban { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
-  .kanban-col { background: #f3f4f6; border-radius: 12px; padding: 14px; min-height: 300px; }
-  .kanban-col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-  .kanban-col-header span { font-size: 13px; font-weight: 700; }
-  .col-count { background: rgba(0,0,0,.1); border-radius: 9999px; padding: 1px 7px; font-size: 11px; font-weight: 700; }
-  .kanban-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; cursor: grab; box-shadow: 0 1px 3px rgba(0,0,0,.06); transition: box-shadow .15s; }
-  .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
-  .kanban-card.dragging { opacity: .5; }
-  .kanban-card-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .kanban-card-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .tag { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
-  .tag-feature { background: var(--blue-light); color: var(--blue); }
-  .tag-bug { background: var(--red-light); color: var(--red); }
-  .tag-infra { background: var(--purple-light); color: var(--purple); }
-  .tag-research { background: var(--amber-light); color: var(--amber); }
-  .col-backlog .kanban-col-header span { color: #6b7280; }
-  .col-progress .kanban-col-header span { color: var(--blue); }
-  .col-review .kanban-col-header span { color: var(--amber); }
-  .col-done .kanban-col-header span { color: var(--green); }
-  .drop-zone { min-height: 50px; border-radius: 8px; border: 2px dashed transparent; transition: border-color .15s; }
-  .drop-zone.drag-over { border-color: var(--green-light); background: var(--green-pale); }
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a4731;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.2);opacity:0;transition:.3s;z-index:999;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
-  .milestone { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
-  .milestone-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-  .milestone-dot.not-started { background: #d1d5db; }
-  .milestone-dot.in-progress { background: var(--blue); }
-  .milestone-dot.done { background: var(--green-light); }
-  .milestone-dot.blocked { background: var(--red); }
-  .milestone-info { flex: 1; }
-  .milestone-title { font-size: 14px; font-weight: 600; }
-  .milestone-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .milestone-status { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; cursor: pointer; }
-  .status-not-started { background: #f3f4f6; color: #6b7280; }
-  .status-in-progress { background: var(--blue-light); color: var(--blue); }
-  .status-done { background: var(--green-pale); color: var(--green); }
-  .status-blocked { background: var(--red-light); color: var(--red); }
+.empty{text-align:center;padding:32px;color:#9ca3af;font-size:14px}
 
-  .todo-top { display: flex; gap: 10px; margin-bottom: 20px; }
-  .todo-top input { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 14px; background: var(--card); }
-  .todo-top select { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: var(--card); }
-  .todo-filters { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-  .filter-btn { padding: 5px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--text-muted); transition: all .15s; }
-  .filter-btn.active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
-  .todo-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; transition: opacity .2s; }
-  .todo-item.done-item { opacity: .55; }
-  .todo-item.done-item .todo-text { text-decoration: line-through; color: var(--text-muted); }
-  .todo-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
-  .todo-check.checked { background: var(--green-light); border-color: var(--green-light); }
-  .todo-check.checked::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 800; }
-  .todo-text { flex: 1; font-size: 14px; }
-  .todo-priority { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
-  .p-high { background: var(--red-light); color: var(--red); }
-  .p-medium { background: var(--amber-light); color: var(--amber); }
-  .p-low { background: var(--blue-light); color: var(--blue); }
-  .todo-date { font-size: 11px; color: var(--text-muted); }
+/* Filters */
+.filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.fbtn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer;transition:.15s}
+.fbtn.active{background:#1a4731;color:#fff;border-color:#1a4731}
 
-  .log-add { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-  .log-add textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px; background: var(--bg); }
-  .log-add-footer { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
-  .log-add-footer select { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: var(--card); }
-  .log-entry { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; }
-  .log-entry-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .log-date { font-size: 12px; font-weight: 700; color: var(--green); }
-  .log-category { font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 9999px; }
-  .cat-dev { background: var(--blue-light); color: var(--blue); }
-  .cat-research { background: var(--purple-light); color: var(--purple); }
-  .cat-testing { background: var(--amber-light); color: var(--amber); }
-  .cat-deployment { background: var(--green-pale); color: var(--green); }
-  .cat-planning { background: #f3e8ff; color: #7c3aed; }
-  .log-text { font-size: 14px; line-height: 1.6; color: var(--text); }
+/* Log */
+.log-entry{padding:14px 0;border-bottom:1px solid #f0f0f0}
+.log-entry:last-child{border:none}
+.log-head{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.log-date{font-size:12px;font-weight:700;color:#2d7a4f}
+.log-body{font-size:14px;line-height:1.6;color:#374151}
 
-  .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
-  .del-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 6px; font-size: 16px; line-height: 1; transition: color .15s; }
-  .del-btn:hover { color: var(--red); }
-
-  /* Toast */
-  #toast { position: fixed; bottom: 28px; right: 28px; background: var(--green-dark); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.2); transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 999; pointer-events: none; }
-  #toast.show { transform: translateY(0); opacity: 1; }
-
-  @media (max-width: 900px) {
-    .stat-grid { grid-template-columns: repeat(2,1fr); }
-    .kanban { grid-template-columns: repeat(2,1fr); }
-    .dash-grid { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 640px) {
-    #sidebar { width: 60px; }
-    #sidebar .nav-item span, .sidebar-logo h1, .sidebar-logo span, .sidebar-footer { display: none; }
-    #main { margin-left: 60px; }
-    .stat-grid { grid-template-columns: 1fr 1fr; }
-    .kanban { grid-template-columns: 1fr; }
-  }
+@media(max-width:768px){
+  .stats{grid-template-columns:1fr 1fr}
+  .pipeline-grid{grid-template-columns:1fr 1fr}
+  .tabs{flex-wrap:wrap}
+  header{flex-direction:column;gap:12px;text-align:center}
+}
+@media(max-width:500px){
+  .pipeline-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr}
+  .add-row{flex-direction:column}
+}
 </style>
 </head>
 <body>
 
-<nav id="sidebar">
-  <div class="sidebar-logo">
-    <h1>🌾 Harvester</h1>
-    <span>CropAccess AgriTech</span>
+<header>
+  <h1>🌾 Harvester<em>CropAccess AgriTech</em></h1>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-p="dashboard">Dashboard</button>
+    <button class="tab" data-p="pipeline">Pipeline</button>
+    <button class="tab" data-p="roadmap">Roadmap</button>
+    <button class="tab" data-p="todo">To-Do</button>
+    <button class="tab" data-p="logs">Progress</button>
   </div>
-  <div class="sidebar-nav">
-    <div class="nav-item active" data-view="dashboard">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-      <span>Dashboard</span>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <div class="page active" id="p-dashboard">
+    <div class="stats" id="stats"></div>
+    <div class="card"><h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Today's Tasks</h3><div id="dash-today"></div></div>
+    <div class="card" style="margin-top:16px"><h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Recent Logs</h3><div id="dash-logs"></div></div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="page" id="p-pipeline">
+    <div class="add-row">
+      <input type="text" id="pi-input" placeholder="New pipeline task...">
+      <select id="pi-type"><option>feature</option><option>bug</option><option>infra</option><option>research</option></select>
+      <select id="pi-col"><option value="backlog">Backlog</option><option value="progress">In Progress</option><option value="review">Review</option><option value="done">Done</option></select>
+      <button class="btn btn-green" id="pi-add">+ Add Task</button>
     </div>
-    <div class="nav-item" data-view="pipeline">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-      <span>Pipeline</span>
-    </div>
-    <div class="nav-item" data-view="roadmap">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-      <span>Roadmap</span>
-    </div>
-    <div class="nav-item" data-view="todos">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-      <span>To-Do</span>
-    </div>
-    <div class="nav-item" data-view="progress">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-      <span>Progress Log</span>
+    <div class="pipeline-grid">
+      <div class="col"><div class="col-head">Backlog <span class="cnt" id="c-backlog">0</span></div><div id="z-backlog"></div></div>
+      <div class="col"><div class="col-head" style="color:#2563eb">In Progress <span class="cnt" id="c-progress">0</span></div><div id="z-progress"></div></div>
+      <div class="col"><div class="col-head" style="color:#d97706">Review <span class="cnt" id="c-review">0</span></div><div id="z-review"></div></div>
+      <div class="col"><div class="col-head" style="color:#22c55e">Done <span class="cnt" id="c-done">0</span></div><div id="z-done"></div></div>
     </div>
   </div>
-  <div class="sidebar-footer">v1.1 · Local Storage</div>
-</nav>
 
-<div id="main">
-  <div class="topbar">
-    <h2 id="view-title">Dashboard</h2>
-    <span class="topbar-date" id="topbar-date"></span>
+  <!-- ROADMAP -->
+  <div class="page" id="p-roadmap">
+    <div class="add-row">
+      <input type="text" id="ms-input" placeholder="Milestone title...">
+      <input type="date" id="ms-date">
+      <select id="ms-status"><option value="not-started">Not Started</option><option value="in-progress">In Progress</option><option value="done">Done</option><option value="blocked">Blocked</option></select>
+      <button class="btn btn-green" id="ms-add">+ Add Milestone</button>
+    </div>
+    <div id="ms-list"></div>
   </div>
-  <div class="content">
 
-    <!-- DASHBOARD -->
-    <div class="view active" id="view-dashboard">
-      <div class="stat-grid" id="stat-grid"></div>
-      <div class="dash-grid">
-        <div class="card">
-          <div class="section-title">Pipeline Progress</div>
-          <div id="pipeline-progress"></div>
-        </div>
-        <div class="card">
-          <div class="section-title">Today's Tasks <span id="today-count" style="font-size:12px;color:var(--text-muted);font-weight:400"></span></div>
-          <div id="today-tasks"></div>
-        </div>
-      </div>
-      <div style="margin-top:20px" class="card">
-        <div class="section-title">Recent Progress Logs</div>
-        <div id="recent-logs"></div>
-      </div>
+  <!-- TO-DO -->
+  <div class="page" id="p-todo">
+    <div class="add-row">
+      <input type="text" id="td-input" placeholder="Add a new task...">
+      <select id="td-pri"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select>
+      <button class="btn btn-green" id="td-add">+ Add Task</button>
     </div>
-
-    <!-- PIPELINE -->
-    <div class="view" id="view-pipeline">
-      <div class="add-bar">
-        <input id="task-input" placeholder="New pipeline task…" />
-        <select id="task-type">
-          <option value="feature">Feature</option>
-          <option value="bug">Bug</option>
-          <option value="infra">Infra</option>
-          <option value="research">Research</option>
-        </select>
-        <select id="task-col">
-          <option value="backlog">Backlog</option>
-          <option value="progress">In Progress</option>
-          <option value="review">Review</option>
-          <option value="done">Done</option>
-        </select>
-        <button class="btn btn-primary" id="btn-add-task">+ Add Task</button>
-      </div>
-      <div class="kanban">
-        <div class="kanban-col col-backlog">
-          <div class="kanban-col-header"><span>Backlog</span><span class="col-count" id="count-backlog">0</span></div>
-          <div class="drop-zone" id="drop-backlog"></div>
-        </div>
-        <div class="kanban-col col-progress">
-          <div class="kanban-col-header"><span>In Progress</span><span class="col-count" id="count-progress">0</span></div>
-          <div class="drop-zone" id="drop-progress"></div>
-        </div>
-        <div class="kanban-col col-review">
-          <div class="kanban-col-header"><span>Review</span><span class="col-count" id="count-review">0</span></div>
-          <div class="drop-zone" id="drop-review"></div>
-        </div>
-        <div class="kanban-col col-done">
-          <div class="kanban-col-header"><span>Done</span><span class="col-count" id="count-done">0</span></div>
-          <div class="drop-zone" id="drop-done"></div>
-        </div>
-      </div>
+    <div class="filters" id="td-filters">
+      <button class="fbtn active" data-f="all">All</button>
+      <button class="fbtn" data-f="active">Active</button>
+      <button class="fbtn" data-f="done">Done</button>
+      <button class="fbtn" data-f="high">High Priority</button>
     </div>
-
-    <!-- ROADMAP -->
-    <div class="view" id="view-roadmap">
-      <div class="add-bar">
-        <input id="ms-title" placeholder="Milestone title…" />
-        <input id="ms-date" type="date" />
-        <select id="ms-status">
-          <option value="not-started">Not Started</option>
-          <option value="in-progress">In Progress</option>
-          <option value="done">Done</option>
-          <option value="blocked">Blocked</option>
-        </select>
-        <button class="btn btn-primary" id="btn-add-milestone">+ Add Milestone</button>
-      </div>
-      <div id="milestones-list"></div>
-    </div>
-
-    <!-- TO-DO -->
-    <div class="view" id="view-todos">
-      <div class="todo-top">
-        <input id="todo-input" placeholder="Add a new task…" />
-        <select id="todo-priority">
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-          <option value="low">Low</option>
-        </select>
-        <button class="btn btn-primary" id="btn-add-todo">+ Add</button>
-      </div>
-      <div class="todo-filters" id="todo-filters">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="active">Active</button>
-        <button class="filter-btn" data-filter="done">Done</button>
-        <button class="filter-btn" data-filter="high">High Priority</button>
-      </div>
-      <div id="todos-list"></div>
-    </div>
-
-    <!-- PROGRESS LOG -->
-    <div class="view" id="view-progress">
-      <div class="log-add">
-        <div class="section-title" style="margin-bottom:10px">Log Today's Progress</div>
-        <textarea id="log-text" placeholder="What did you work on today? Any blockers? Any wins?"></textarea>
-        <div class="log-add-footer">
-          <select id="log-category">
-            <option value="dev">Development</option>
-            <option value="research">Research</option>
-            <option value="testing">Testing</option>
-            <option value="deployment">Deployment</option>
-            <option value="planning">Planning</option>
-          </select>
-          <button class="btn btn-primary" id="btn-add-log">Save Log</button>
-        </div>
-      </div>
-      <div id="logs-list"></div>
-    </div>
-
+    <div id="td-list"></div>
   </div>
-</div>
+
+  <!-- PROGRESS LOG -->
+  <div class="page" id="p-logs">
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:10px">Log Today's Progress</h3>
+      <textarea id="lg-text" placeholder="What did you work on today?"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
+        <select id="lg-cat" style="border:1.5px solid #ddd;border-radius:10px;padding:10px 14px;font-size:14px"><option value="dev">Development</option><option value="research">Research</option><option value="testing">Testing</option><option value="deployment">Deployment</option><option value="planning">Planning</option></select>
+        <button class="btn btn-green" id="lg-add">Save Log</button>
+      </div>
+    </div>
+    <div id="lg-list"></div>
+  </div>
+</main>
 
 <div id="toast"></div>
 
 <script>
-(function () {
-  // ── Storage ──
-  function sget(k) { try { return JSON.parse(localStorage.getItem('hv_' + k) || 'null'); } catch(e) { return null; } }
-  function sset(k, v) { try { localStorage.setItem('hv_' + k, JSON.stringify(v)); } catch(e) {} }
-  function load(k, def) { var v = sget(k); return v !== null ? v : def; }
+(function(){
+  /* ─── Storage ─── */
+  function g(k){try{var v=localStorage.getItem('hv_'+k);return v?JSON.parse(v):null}catch(e){return null}}
+  function s(k,v){try{localStorage.setItem('hv_'+k,JSON.stringify(v))}catch(e){}}
 
-  // ── State ──
-  var tasks = load('tasks', [
-    {id:1, title:'Sensor data ingestion module', type:'feature', col:'progress'},
-    {id:2, title:'Crop yield prediction model', type:'research', col:'backlog'},
-    {id:3, title:'IoT device connectivity fix', type:'bug', col:'review'},
-    {id:4, title:'Field map UI component', type:'feature', col:'backlog'},
-    {id:5, title:'Initial DB schema migration', type:'infra', col:'done'},
-  ]);
-  var milestones = load('milestones', [
-    {id:1, title:'MVP Sensor Integration', date:'2026-06-15', status:'in-progress'},
-    {id:2, title:'Field Data Dashboard v1', date:'2026-07-01', status:'not-started'},
-    {id:3, title:'Yield Prediction Beta', date:'2026-08-01', status:'not-started'},
-    {id:4, title:'Farmer App Launch', date:'2026-09-15', status:'not-started'},
-    {id:5, title:'Infrastructure Setup', date:'2026-05-20', status:'done'},
-  ]);
-  var todos = load('todos', [
-    {id:1, text:'Review sensor API docs', priority:'high', done:false, date:'2026-05-26'},
-    {id:2, text:'Write unit tests for ingestion module', priority:'medium', done:false, date:'2026-05-26'},
-    {id:3, text:'Update roadmap milestones', priority:'low', done:true, date:'2026-05-25'},
-  ]);
-  var logs = load('logs', [
-    {id:1, text:'Set up initial project structure. Integrated IoT sensor mock data pipeline. Resolved CORS issue with field API.', category:'dev', date:'2026-05-25'},
-  ]);
-  var todoFilter = 'all';
-  var dragId = null;
-  var nextId = load('nextId', 100);
+  /* ─── State ─── */
+  var tasks=g('tasks')||[
+    {id:1,title:'Sensor data ingestion module',type:'feature',col:'progress'},
+    {id:2,title:'Crop yield prediction model',type:'research',col:'backlog'},
+    {id:3,title:'IoT device connectivity fix',type:'bug',col:'review'},
+    {id:4,title:'Field map UI component',type:'feature',col:'backlog'},
+    {id:5,title:'Initial DB schema migration',type:'infra',col:'done'}
+  ];
+  var milestones=g('milestones')||[
+    {id:1,title:'MVP Sensor Integration',date:'2026-06-15',status:'in-progress'},
+    {id:2,title:'Field Data Dashboard v1',date:'2026-07-01',status:'not-started'},
+    {id:3,title:'Yield Prediction Beta',date:'2026-08-01',status:'not-started'},
+    {id:4,title:'Farmer App Launch',date:'2026-09-15',status:'not-started'},
+    {id:5,title:'Infrastructure Setup',date:'2026-05-20',status:'done'}
+  ];
+  var todos=g('todos')||[
+    {id:1,text:'Review sensor API docs',pri:'high',done:false,date:'2026-05-26'},
+    {id:2,text:'Write unit tests for ingestion',pri:'medium',done:false,date:'2026-05-26'},
+    {id:3,text:'Update roadmap milestones',pri:'low',done:true,date:'2026-05-25'}
+  ];
+  todos.forEach(function(t){if(t.priority&&!t.pri){t.pri=t.priority}if(!t.pri)t.pri='medium'});
+  var logs=g('logs')||[
+    {id:1,text:'Set up initial project structure. Integrated IoT sensor mock data pipeline.',cat:'dev',date:'2026-05-25'}
+  ];
+  logs.forEach(function(l){if(l.category&&!l.cat){l.cat=l.category}if(!l.cat)l.cat='dev'});
+  var nid=g('nid')||100;
+  var filter='all';
+  var dragId=null;
 
-  function save() {
-    sset('tasks', tasks); sset('milestones', milestones);
-    sset('todos', todos); sset('logs', logs); sset('nextId', nextId);
-  }
-  function uid() { nextId++; return nextId; }
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function today() { return new Date().toISOString().split('T')[0]; }
-  function fmt(d) { return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
+  function save(){s('tasks',tasks);s('milestones',milestones);s('todos',todos);s('logs',logs);s('nid',nid)}
+  function id(){return++nid}
+  function esc(x){var d=document.createElement('div');d.textContent=x;return d.innerHTML}
+  function today(){return new Date().toISOString().split('T')[0]}
+  function fmt(d){try{return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}catch(e){return d}}
 
-  // ── Toast ──
-  var toastTimer;
-  function toast(msg) {
-    var el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2500);
-  }
+  /* ─── Toast ─── */
+  var tt;
+  function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('show')},2200)}
 
-  // ── Nav ──
-  var titles = { dashboard:'Dashboard', pipeline:'Pipeline', roadmap:'Roadmap', todos:'To-Do List', progress:'Progress Log' };
-  document.querySelectorAll('.nav-item').forEach(function(el) {
-    el.addEventListener('click', function() {
-      document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
-      document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
-      el.classList.add('active');
-      var v = el.getAttribute('data-view');
-      document.getElementById('view-' + v).classList.add('active');
-      document.getElementById('view-title').textContent = titles[v];
-      if (v === 'dashboard') renderDashboard();
-      if (v === 'pipeline') renderPipeline();
-      if (v === 'roadmap') renderMilestones();
-      if (v === 'todos') renderTodos();
-      if (v === 'progress') renderLogs();
+  /* ─── $(id) helper ─── */
+  function $(x){return document.getElementById(x)}
+
+  /* ─── Tabs ─── */
+  $('tabs').addEventListener('click',function(e){
+    var t=e.target.closest('.tab');
+    if(!t)return;
+    document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active')});
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    t.classList.add('active');
+    $('p-'+t.getAttribute('data-p')).classList.add('active');
+    renderAll();
+  });
+
+  /* ════════════════════════════════════════
+     PIPELINE
+     ════════════════════════════════════════ */
+  $('pi-add').addEventListener('click',function(){
+    var inp=$('pi-input');
+    var v=inp.value.trim();
+    if(!v){inp.focus();inp.style.borderColor='#ef4444';setTimeout(function(){inp.style.borderColor=''},1000);return}
+    tasks.push({id:id(),title:v,type:$('pi-type').value,col:$('pi-col').value});
+    inp.value='';
+    save();renderPipeline();renderDash();
+    toast('Task added!');
+  });
+  $('pi-input').addEventListener('keydown',function(e){if(e.key==='Enter')$('pi-add').click()});
+
+  var cols=['backlog','progress','review','done'];
+  cols.forEach(function(c){
+    var zone=$('z-'+c);
+    zone.addEventListener('dragover',function(e){e.preventDefault();zone.style.background='#d1fae5'});
+    zone.addEventListener('dragleave',function(){zone.style.background=''});
+    zone.addEventListener('drop',function(e){
+      e.preventDefault();zone.style.background='';
+      if(dragId!==null){
+        for(var i=0;i<tasks.length;i++){if(tasks[i].id===dragId){tasks[i].col=c;break}}
+        dragId=null;save();renderPipeline();renderDash();
+      }
+    });
+    zone.addEventListener('click',function(e){
+      var btn=e.target.closest('.x-btn');
+      if(!btn)return;
+      var xid=Number(btn.getAttribute('data-id'));
+      tasks=tasks.filter(function(t){return t.id!==xid});
+      save();renderPipeline();renderDash();toast('Removed');
     });
   });
 
-  // Set date
-  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('ms-date').value = today();
-
-  // ── PIPELINE ──
-  function addTask() {
-    var inp = document.getElementById('task-input');
-    var t = inp.value.trim();
-    if (!t) { inp.focus(); inp.style.border = '1.5px solid var(--red)'; setTimeout(function(){ inp.style.border = ''; }, 1200); return; }
-    tasks.push({id:uid(), title:t, type:document.getElementById('task-type').value, col:document.getElementById('task-col').value});
-    inp.value = '';
-    save(); renderPipeline(); renderDashboard();
-    toast('Task added to pipeline ✓');
+  function renderPipeline(){
+    cols.forEach(function(c){
+      var zone=$('z-'+c);
+      var items=tasks.filter(function(t){return t.col===c});
+      $('c-'+c).textContent=items.length;
+      if(!items.length){zone.innerHTML='<div class="empty" style="padding:16px;font-size:12px">Drop here</div>';return}
+      zone.innerHTML=items.map(function(t){
+        return '<div class="col-card" draggable="true" data-id="'+t.id+'">'+
+          '<div class="title">'+esc(t.title)+'</div>'+
+          '<div class="meta"><span class="tag tag-'+t.type+'">'+t.type+'</span>'+
+          '<button class="x-btn" data-id="'+t.id+'">&times;</button></div></div>';
+      }).join('');
+      zone.querySelectorAll('.col-card').forEach(function(card){
+        card.addEventListener('dragstart',function(){dragId=Number(card.getAttribute('data-id'));card.style.opacity='.4'});
+        card.addEventListener('dragend',function(){card.style.opacity='1'});
+      });
+    });
   }
 
-  document.getElementById('btn-add-task').addEventListener('click', addTask);
-  document.getElementById('task-input').addEventListener('keydown', function(e){ if(e.key==='Enter') addTask(); });
+  /* ════════════════════════════════════════
+     ROADMAP
+     ════════════════════════════════════════ */
+  $('ms-date').value=today();
 
-  // Kanban drag & drop via event delegation
-  ['backlog','progress','review','done'].forEach(function(col) {
-    var zone = document.getElementById('drop-' + col);
-    zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
-    zone.addEventListener('drop', function(e){
-      e.preventDefault(); zone.classList.remove('drag-over');
-      if (dragId !== null) {
-        var t = tasks.find(function(x){ return x.id === dragId; });
-        if (t) { t.col = col; save(); renderPipeline(); renderDashboard(); }
-        dragId = null;
-      }
-    });
-    // Delete via delegation
-    zone.addEventListener('click', function(e){
-      var btn = e.target.closest('.del-btn');
-      if (btn) {
-        var id = parseInt(btn.getAttribute('data-id'), 10);
-        tasks = tasks.filter(function(x){ return x.id !== id; });
-        save(); renderPipeline(); renderDashboard();
-        toast('Task removed');
-      }
-    });
+  $('ms-add').addEventListener('click',function(){
+    var inp=$('ms-input');
+    var v=inp.value.trim();
+    if(!v){inp.focus();inp.style.borderColor='#ef4444';setTimeout(function(){inp.style.borderColor=''},1000);return}
+    milestones.push({id:id(),title:v,date:$('ms-date').value,status:$('ms-status').value});
+    inp.value='';
+    milestones.sort(function(a,b){return a.date>b.date?1:-1});
+    save();renderMilestones();renderDash();
+    toast('Milestone added!');
   });
+  $('ms-input').addEventListener('keydown',function(e){if(e.key==='Enter')$('ms-add').click()});
 
-  function renderPipeline() {
-    ['backlog','progress','review','done'].forEach(function(c) {
-      var zone = document.getElementById('drop-' + c);
-      var filtered = tasks.filter(function(t){ return t.col === c; });
-      document.getElementById('count-' + c).textContent = filtered.length;
-      if (!filtered.length) {
-        zone.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:8px 4px;">Drop tasks here</div>';
-      } else {
-        zone.innerHTML = filtered.map(function(t){
-          return '<div class="kanban-card" draggable="true" data-id="' + t.id + '">' +
-            '<div class="kanban-card-title">' + esc(t.title) + '</div>' +
-            '<div class="kanban-card-meta">' +
-              '<span class="tag tag-' + t.type + '">' + t.type + '</span>' +
-              '<button class="del-btn" data-id="' + t.id + '" title="Remove">×</button>' +
-            '</div></div>';
-        }).join('');
-        // Wire drag events
-        zone.querySelectorAll('.kanban-card').forEach(function(card){
-          card.addEventListener('dragstart', function(e){
-            dragId = parseInt(card.getAttribute('data-id'), 10);
-            card.classList.add('dragging');
-          });
-          card.addEventListener('dragend', function(){
-            card.classList.remove('dragging');
-          });
-        });
-      }
-    });
-  }
-
-  // ── ROADMAP ──
-  function addMilestone() {
-    var inp = document.getElementById('ms-title');
-    var t = inp.value.trim();
-    if (!t) { inp.focus(); inp.style.border = '1.5px solid var(--red)'; setTimeout(function(){ inp.style.border = ''; }, 1200); return; }
-    milestones.push({id:uid(), title:t, date:document.getElementById('ms-date').value, status:document.getElementById('ms-status').value});
-    inp.value = '';
-    milestones.sort(function(a,b){ return a.date > b.date ? 1 : -1; });
-    save(); renderMilestones();
-    toast('Milestone added ✓');
-  }
-
-  document.getElementById('btn-add-milestone').addEventListener('click', addMilestone);
-  document.getElementById('ms-title').addEventListener('keydown', function(e){ if(e.key==='Enter') addMilestone(); });
-
-  document.getElementById('milestones-list').addEventListener('click', function(e) {
-    var btn = e.target.closest('.del-btn');
-    var badge = e.target.closest('.milestone-status');
-    if (btn) {
-      var id = parseInt(btn.getAttribute('data-id'), 10);
-      milestones = milestones.filter(function(m){ return m.id !== id; });
-      save(); renderMilestones(); toast('Milestone removed');
+  $('ms-list').addEventListener('click',function(e){
+    var btn=e.target.closest('.x-btn');
+    var badge=e.target.closest('.ms-badge');
+    if(btn){
+      var xid=Number(btn.getAttribute('data-id'));
+      milestones=milestones.filter(function(m){return m.id!==xid});
+      save();renderMilestones();renderDash();toast('Removed');
     }
-    if (badge) {
-      var id = parseInt(badge.getAttribute('data-id'), 10);
-      var cycle = ['not-started','in-progress','done','blocked'];
-      var m = milestones.find(function(x){ return x.id === id; });
-      if (m) { m.status = cycle[(cycle.indexOf(m.status)+1) % cycle.length]; save(); renderMilestones(); }
+    if(badge){
+      var xid=Number(badge.getAttribute('data-id'));
+      var cycle=['not-started','in-progress','done','blocked'];
+      for(var i=0;i<milestones.length;i++){
+        if(milestones[i].id===xid){
+          var ci=cycle.indexOf(milestones[i].status);
+          milestones[i].status=cycle[(ci+1)%4];
+          break;
+        }
+      }
+      save();renderMilestones();renderDash();
     }
   });
 
-  function renderMilestones() {
-    var el = document.getElementById('milestones-list');
-    if (!milestones.length) { el.innerHTML = '<div class="empty">No milestones yet. Add your first one above.</div>'; return; }
-    el.innerHTML = milestones.map(function(m){
-      return '<div class="milestone">' +
-        '<div class="milestone-dot ' + m.status + '"></div>' +
-        '<div class="milestone-info">' +
-          '<div class="milestone-title">' + esc(m.title) + '</div>' +
-          '<div class="milestone-meta">Target: ' + (m.date ? fmt(m.date) : 'No date') + '</div>' +
-        '</div>' +
-        '<span class="milestone-status status-' + m.status + '" data-id="' + m.id + '" title="Click to change status">' + m.status.replace('-',' ') + '</span>' +
-        '<button class="del-btn" data-id="' + m.id + '" title="Remove">×</button>' +
-      '</div>';
+  function renderMilestones(){
+    var el=$('ms-list');
+    if(!milestones.length){el.innerHTML='<div class="empty">No milestones. Add one above.</div>';return}
+    el.innerHTML=milestones.map(function(m){
+      return '<div class="item"><div class="ms-dot '+m.status+'"></div>'+
+        '<div class="item-text"><strong>'+esc(m.title)+'</strong><br><span style="font-size:12px;color:#6b7280">Target: '+fmt(m.date)+'</span></div>'+
+        '<span class="ms-badge '+m.status+'" data-id="'+m.id+'" title="Click to change">'+m.status.replace(/-/g,' ')+'</span>'+
+        '<button class="x-btn" data-id="'+m.id+'">&times;</button></div>';
     }).join('');
   }
 
-  // ── TO-DO ──
-  function addTodo() {
-    var inp = document.getElementById('todo-input');
-    var t = inp.value.trim();
-    if (!t) { inp.focus(); inp.style.border = '1.5px solid var(--red)'; setTimeout(function(){ inp.style.border = ''; }, 1200); return; }
-    todos.unshift({id:uid(), text:t, priority:document.getElementById('todo-priority').value, done:false, date:today()});
-    inp.value = '';
-    save(); renderTodos(); renderDashboard();
-    toast('Task added ✓');
-  }
+  /* ════════════════════════════════════════
+     TO-DO
+     ════════════════════════════════════════ */
+  $('td-add').addEventListener('click',function(){
+    var inp=$('td-input');
+    var v=inp.value.trim();
+    if(!v){inp.focus();inp.style.borderColor='#ef4444';setTimeout(function(){inp.style.borderColor=''},1000);return}
+    todos.unshift({id:id(),text:v,pri:$('td-pri').value,done:false,date:today()});
+    inp.value='';
+    save();renderTodos();renderDash();
+    toast('Task added!');
+  });
+  $('td-input').addEventListener('keydown',function(e){if(e.key==='Enter')$('td-add').click()});
 
-  document.getElementById('btn-add-todo').addEventListener('click', addTodo);
-  document.getElementById('todo-input').addEventListener('keydown', function(e){ if(e.key==='Enter') addTodo(); });
-
-  document.getElementById('todo-filters').addEventListener('click', function(e){
-    var btn = e.target.closest('.filter-btn');
-    if (!btn) return;
-    document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  $('td-filters').addEventListener('click',function(e){
+    var btn=e.target.closest('.fbtn');
+    if(!btn)return;
+    document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('active')});
     btn.classList.add('active');
-    todoFilter = btn.getAttribute('data-filter');
+    filter=btn.getAttribute('data-f');
     renderTodos();
   });
 
-  document.getElementById('todos-list').addEventListener('click', function(e){
-    var check = e.target.closest('.todo-check');
-    var del = e.target.closest('.del-btn');
-    if (check) {
-      var id = parseInt(check.getAttribute('data-id'), 10);
-      var t = todos.find(function(x){ return x.id === id; });
-      if (t) { t.done = !t.done; save(); renderTodos(); renderDashboard(); }
+  $('td-list').addEventListener('click',function(e){
+    var chk=e.target.closest('.check');
+    var btn=e.target.closest('.x-btn');
+    if(chk){
+      var xid=Number(chk.getAttribute('data-id'));
+      for(var i=0;i<todos.length;i++){if(todos[i].id===xid){todos[i].done=!todos[i].done;break}}
+      save();renderTodos();renderDash();
     }
-    if (del) {
-      var id = parseInt(del.getAttribute('data-id'), 10);
-      todos = todos.filter(function(x){ return x.id !== id; });
-      save(); renderTodos(); renderDashboard(); toast('Task removed');
-    }
-  });
-
-  function renderTodos() {
-    var filtered = todos;
-    if (todoFilter === 'active') filtered = todos.filter(function(t){ return !t.done; });
-    else if (todoFilter === 'done') filtered = todos.filter(function(t){ return t.done; });
-    else if (todoFilter === 'high') filtered = todos.filter(function(t){ return t.priority === 'high'; });
-    var el = document.getElementById('todos-list');
-    if (!filtered.length) { el.innerHTML = '<div class="empty">No tasks here.</div>'; return; }
-    el.innerHTML = filtered.map(function(t){
-      return '<div class="todo-item' + (t.done ? ' done-item' : '') + '">' +
-        '<div class="todo-check' + (t.done ? ' checked' : '') + '" data-id="' + t.id + '"></div>' +
-        '<span class="todo-text">' + esc(t.text) + '</span>' +
-        '<span class="todo-priority p-' + t.priority + '">' + t.priority + '</span>' +
-        '<span class="todo-date">' + t.date + '</span>' +
-        '<button class="del-btn" data-id="' + t.id + '">×</button>' +
-      '</div>';
-    }).join('');
-  }
-
-  // ── PROGRESS LOG ──
-  function addLog() {
-    var ta = document.getElementById('log-text');
-    var t = ta.value.trim();
-    if (!t) { ta.focus(); ta.style.border = '1.5px solid var(--red)'; setTimeout(function(){ ta.style.border = ''; }, 1200); return; }
-    logs.unshift({id:uid(), text:t, category:document.getElementById('log-category').value, date:today()});
-    ta.value = '';
-    save(); renderLogs(); renderDashboard();
-    toast('Progress logged ✓');
-  }
-
-  document.getElementById('btn-add-log').addEventListener('click', addLog);
-
-  document.getElementById('logs-list').addEventListener('click', function(e){
-    var btn = e.target.closest('.del-btn');
-    if (btn) {
-      var id = parseInt(btn.getAttribute('data-id'), 10);
-      logs = logs.filter(function(x){ return x.id !== id; });
-      save(); renderLogs(); renderDashboard(); toast('Log removed');
+    if(btn){
+      var xid=Number(btn.getAttribute('data-id'));
+      todos=todos.filter(function(t){return t.id!==xid});
+      save();renderTodos();renderDash();toast('Removed');
     }
   });
 
-  function renderLogs() {
-    var el = document.getElementById('logs-list');
-    if (!logs.length) { el.innerHTML = '<div class="empty">No logs yet. Start logging your daily progress above.</div>'; return; }
-    el.innerHTML = logs.map(function(l){
-      return '<div class="log-entry">' +
-        '<div class="log-entry-header">' +
-          '<span class="log-date">' + fmt(l.date) + '</span>' +
-          '<div style="display:flex;gap:8px;align-items:center">' +
-            '<span class="log-category cat-' + l.category + '">' + l.category + '</span>' +
-            '<button class="del-btn" data-id="' + l.id + '">×</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="log-text">' + esc(l.text) + '</div>' +
-      '</div>';
+  function renderTodos(){
+    var list=todos;
+    if(filter==='active')list=todos.filter(function(t){return!t.done});
+    else if(filter==='done')list=todos.filter(function(t){return t.done});
+    else if(filter==='high')list=todos.filter(function(t){return t.pri==='high'});
+    var el=$('td-list');
+    if(!list.length){el.innerHTML='<div class="empty">No tasks here.</div>';return}
+    el.innerHTML=list.map(function(t){
+      return '<div class="item"><div class="check'+(t.done?' on':'')+'" data-id="'+t.id+'"></div>'+
+        '<span class="item-text'+(t.done?' done-text':'')+'">'+esc(t.text)+'</span>'+
+        '<span class="tag tag-'+t.pri+'">'+t.pri+'</span>'+
+        '<span style="font-size:11px;color:#9ca3af">'+t.date+'</span>'+
+        '<button class="x-btn" data-id="'+t.id+'">&times;</button></div>';
     }).join('');
   }
 
-  // ── DASHBOARD ──
-  function renderDashboard() {
-    var total = tasks.length;
-    var doneCount = tasks.filter(function(t){ return t.col === 'done'; }).length;
-    var inprog = tasks.filter(function(t){ return t.col === 'progress'; }).length;
-    var todayStr = today();
-    var todayTodos = todos.filter(function(t){ return t.date === todayStr; });
-    var todayDone = todayTodos.filter(function(t){ return t.done; }).length;
+  /* ════════════════════════════════════════
+     PROGRESS LOG
+     ════════════════════════════════════════ */
+  $('lg-add').addEventListener('click',function(){
+    var ta=$('lg-text');
+    var v=ta.value.trim();
+    if(!v){ta.focus();ta.style.borderColor='#ef4444';setTimeout(function(){ta.style.borderColor=''},1000);return}
+    logs.unshift({id:id(),text:v,cat:$('lg-cat').value,date:today()});
+    ta.value='';
+    save();renderLogs();renderDash();
+    toast('Progress logged!');
+  });
 
-    document.getElementById('stat-grid').innerHTML =
-      '<div class="stat green"><div class="stat-label">Tasks Done</div><div class="stat-val">' + doneCount + '</div><div class="stat-sub">of ' + total + ' total</div></div>' +
-      '<div class="stat blue"><div class="stat-label">In Progress</div><div class="stat-val">' + inprog + '</div><div class="stat-sub">pipeline tasks</div></div>' +
-      '<div class="stat amber"><div class="stat-label">Today\'s Todos</div><div class="stat-val">' + todayDone + '/' + todayTodos.length + '</div><div class="stat-sub">completed today</div></div>' +
-      '<div class="stat red"><div class="stat-label">Milestones</div><div class="stat-val">' + milestones.filter(function(m){ return m.status==='done'; }).length + '/' + milestones.length + '</div><div class="stat-sub">completed</div></div>';
+  $('lg-list').addEventListener('click',function(e){
+    var btn=e.target.closest('.x-btn');
+    if(!btn)return;
+    var xid=Number(btn.getAttribute('data-id'));
+    logs=logs.filter(function(l){return l.id!==xid});
+    save();renderLogs();renderDash();toast('Removed');
+  });
 
-    var cols = [{k:'backlog',label:'Backlog',cl:''},{k:'progress',label:'In Progress',cl:'amber'},{k:'review',label:'Review',cl:'amber'},{k:'done',label:'Done',cl:''}];
-    document.getElementById('pipeline-progress').innerHTML = cols.map(function(c){
-      var n = tasks.filter(function(t){ return t.col === c.k; }).length;
-      var pct = total ? Math.round(n/total*100) : 0;
-      return '<div class="progress-bar-wrap"><div class="progress-label"><span>' + c.label + '</span><span>' + n + ' task' + (n!==1?'s':'') + ' (' + pct + '%)</span></div>' +
-        '<div class="progress-track"><div class="progress-fill ' + c.cl + '" style="width:' + pct + '%"></div></div></div>';
-    }).join('');
+  function renderLogs(){
+    var el=$('lg-list');
+    if(!logs.length){el.innerHTML='<div class="empty">No logs yet.</div>';return}
+    el.innerHTML='<div class="card">'+logs.map(function(l){
+      return '<div class="log-entry"><div class="log-head"><span class="log-date">'+fmt(l.date)+'</span>'+
+        '<span class="tag tag-'+l.cat+'">'+l.cat+'</span>'+
+        '<button class="x-btn" data-id="'+l.id+'" style="margin-left:auto">&times;</button></div>'+
+        '<div class="log-body">'+esc(l.text)+'</div></div>';
+    }).join('')+'</div>';
+  }
 
-    var todayEl = document.getElementById('today-tasks');
-    document.getElementById('today-count').textContent = '(' + todayDone + '/' + todayTodos.length + ' done)';
-    if (!todayTodos.length) {
-      todayEl.innerHTML = '<div class="empty" style="padding:16px">No tasks for today yet. Add some in To-Do.</div>';
-    } else {
-      todayEl.innerHTML = todayTodos.slice(0,5).map(function(t){
-        return '<div class="todo-item" style="margin-bottom:6px;' + (t.done?'opacity:.5':'') + '">' +
-          '<div class="todo-check' + (t.done?' checked':'') + '" data-id="' + t.id + '"></div>' +
-          '<span class="todo-text" style="' + (t.done?'text-decoration:line-through;color:var(--text-muted)':'') + '">' + esc(t.text) + '</span>' +
-          '<span class="todo-priority p-' + t.priority + '">' + t.priority + '</span>' +
-        '</div>';
+  /* ════════════════════════════════════════
+     DASHBOARD
+     ════════════════════════════════════════ */
+  function renderDash(){
+    var total=tasks.length;
+    var dn=tasks.filter(function(t){return t.col==='done'}).length;
+    var ip=tasks.filter(function(t){return t.col==='progress'}).length;
+    var td=today();
+    var tt=todos.filter(function(t){return t.date===td});
+    var tc=tt.filter(function(t){return t.done}).length;
+    var mc=milestones.filter(function(m){return m.status==='done'}).length;
+
+    $('stats').innerHTML=
+      '<div class="stat"><div class="stat-label">Tasks Done</div><div class="stat-num green">'+dn+'/'+total+'</div></div>'+
+      '<div class="stat"><div class="stat-label">In Progress</div><div class="stat-num blue">'+ip+'</div></div>'+
+      '<div class="stat"><div class="stat-label">Today\'s Todos</div><div class="stat-num amber">'+tc+'/'+tt.length+'</div></div>'+
+      '<div class="stat"><div class="stat-label">Milestones</div><div class="stat-num red">'+mc+'/'+milestones.length+'</div></div>';
+
+    var dtEl=$('dash-today');
+    if(!tt.length){dtEl.innerHTML='<div class="empty">No tasks for today. Add some in To-Do.</div>'}
+    else{
+      dtEl.innerHTML=tt.slice(0,5).map(function(t){
+        return '<div class="item" style="margin-bottom:6px"><div class="check'+(t.done?' on':'')+'" data-id="'+t.id+'"></div>'+
+          '<span class="item-text'+(t.done?' done-text':'')+'">'+esc(t.text)+'</span>'+
+          '<span class="tag tag-'+t.pri+'">'+t.pri+'</span></div>';
       }).join('');
-      // Wire checkbox clicks on dashboard
-      todayEl.querySelectorAll('.todo-check').forEach(function(ch){
-        ch.addEventListener('click', function(){
-          var id = parseInt(ch.getAttribute('data-id'), 10);
-          var t = todos.find(function(x){ return x.id === id; });
-          if (t) { t.done = !t.done; save(); renderDashboard(); }
-        });
+      dtEl.addEventListener('click',function(e){
+        var chk=e.target.closest('.check');
+        if(!chk)return;
+        var xid=Number(chk.getAttribute('data-id'));
+        for(var i=0;i<todos.length;i++){if(todos[i].id===xid){todos[i].done=!todos[i].done;break}}
+        save();renderDash();
       });
     }
 
-    var recentEl = document.getElementById('recent-logs');
-    if (!logs.length) {
-      recentEl.innerHTML = '<div class="empty" style="padding:16px">No logs yet.</div>';
-    } else {
-      recentEl.innerHTML = logs.slice(0,3).map(function(l){
-        return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
-          '<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">' +
-            '<span class="log-date">' + fmt(l.date) + '</span>' +
-            '<span class="log-category cat-' + l.category + '">' + l.category + '</span>' +
-          '</div>' +
-          '<div class="log-text" style="font-size:13px">' + esc(l.text).substring(0,150) + (l.text.length > 150 ? '…' : '') + '</div>' +
-        '</div>';
+    var dlEl=$('dash-logs');
+    if(!logs.length){dlEl.innerHTML='<div class="empty">No logs yet.</div>'}
+    else{
+      dlEl.innerHTML=logs.slice(0,3).map(function(l){
+        return '<div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><div class="log-head"><span class="log-date">'+fmt(l.date)+'</span><span class="tag tag-'+l.cat+'">'+l.cat+'</span></div>'+
+          '<div style="font-size:13px;color:#374151;margin-top:4px">'+esc(l.text).substring(0,120)+(l.text.length>120?'...':'')+'</div></div>';
       }).join('');
     }
   }
 
-  // ── Init ──
-  renderDashboard();
-  renderPipeline();
+  /* ─── Render all ─── */
+  function renderAll(){renderDash();renderPipeline();renderMilestones();renderTodos();renderLogs()}
+  renderAll();
 
 })();
 </script>
