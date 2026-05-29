@@ -3,194 +3,653 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Harvester — CropAccess AgriTech</title>
+<title>CROPACCESS // AgriTech Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg-deep:#04060c;
+  --bg-base:#070b18;
+  --bg-card:rgba(10,20,40,.45);
+  --bg-card-hover:rgba(15,30,55,.6);
+  --border:rgba(0,255,170,.15);
+  --border-bright:rgba(0,255,170,.4);
+  --neon-green:#00ff9d;
+  --neon-cyan:#00e5ff;
+  --neon-purple:#c084fc;
+  --neon-pink:#ff6ec4;
+  --neon-yellow:#ffd93d;
+  --neon-orange:#ff8c42;
+  --neon-red:#ff4757;
+  --text-bright:#f1f5f9;
+  --text-mid:#94a3b8;
+  --text-dim:#64748b;
+  --glow-green:0 0 20px rgba(0,255,157,.35);
+  --glow-cyan:0 0 20px rgba(0,229,255,.35);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
-header{background:linear-gradient(135deg,#1a4731,#2d7a4f);color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
-header h1{font-size:22px;font-weight:800;letter-spacing:.3px}
-header h1 em{font-style:normal;font-weight:400;font-size:13px;opacity:.7;margin-left:8px}
-.tabs{display:flex;gap:4px;background:rgba(0,0,0,.2);border-radius:10px;padding:4px}
-.tab{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;color:rgba(255,255,255,.7);cursor:pointer;border:none;background:none;transition:.15s}
-.tab:hover{color:#fff}
-.tab.active{background:#fff;color:#1a4731}
-main{max-width:960px;margin:0 auto;padding:24px 20px}
-.page{display:none}
+html,body{background:var(--bg-deep);color:var(--text-bright);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── Animated background ── */
+.bg-grid{position:fixed;inset:0;background-image:
+  linear-gradient(rgba(0,255,170,.04) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,255,170,.04) 1px,transparent 1px);
+  background-size:50px 50px;
+  z-index:-3;
+  animation:gridMove 20s linear infinite;
+}
+@keyframes gridMove{0%{background-position:0 0}100%{background-position:50px 50px}}
+.bg-radial{position:fixed;inset:0;background:
+  radial-gradient(circle at 20% 20%,rgba(0,255,157,.08),transparent 50%),
+  radial-gradient(circle at 80% 80%,rgba(0,229,255,.08),transparent 50%),
+  radial-gradient(circle at 50% 50%,rgba(192,132,252,.05),transparent 70%);
+  z-index:-2;pointer-events:none;
+}
+.bg-noise{position:fixed;inset:0;opacity:.025;pointer-events:none;z-index:-1;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+/* Scanline */
+.scanline{position:fixed;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,255,157,.5),transparent);z-index:50;pointer-events:none;animation:scan 8s linear infinite;}
+@keyframes scan{0%{top:-2px;opacity:0}5%{opacity:1}95%{opacity:1}100%{top:100vh;opacity:0}}
+
+/* ── Top HUD ── */
+.hud{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,rgba(7,11,24,.95),rgba(7,11,24,.8));backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 28px;}
+.hud-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:var(--glow-green),inset 0 0 20px rgba(0,0,0,.2);position:relative}
+.brand-mark::before{content:'';position:absolute;inset:-2px;border-radius:14px;background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));z-index:-1;opacity:.4;filter:blur(8px);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.7}}
+.brand-text h1{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+.brand-text .sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2.5px;margin-top:4px;text-transform:uppercase}
+.hud-stats{display:flex;align-items:center;gap:24px}
+.hud-stat{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);display:flex;flex-direction:column;align-items:flex-end}
+.hud-stat span{color:var(--neon-green);font-size:14px;font-weight:600;margin-top:2px}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--neon-green);margin-right:8px;box-shadow:0 0 10px var(--neon-green);animation:livePulse 2s ease-in-out infinite;vertical-align:middle}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+#hud-clock{font-family:'JetBrains Mono',monospace;color:var(--neon-cyan);font-size:14px;letter-spacing:1px}
+
+/* ── Nav ── */
+.cmd-nav{max-width:1400px;margin:0 auto;padding:18px 28px 0;display:flex;gap:6px;flex-wrap:wrap}
+.nav-cmd{background:rgba(10,20,40,.4);border:1px solid var(--border);color:var(--text-mid);padding:10px 18px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.5px;cursor:pointer;transition:all .25s;text-transform:uppercase;display:flex;align-items:center;gap:8px;backdrop-filter:blur(10px)}
+.nav-cmd:hover{color:var(--neon-cyan);border-color:rgba(0,229,255,.4);background:rgba(0,229,255,.05);transform:translateY(-1px)}
+.nav-cmd.active{color:var(--bg-deep);background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));border-color:transparent;box-shadow:var(--glow-green);font-weight:700}
+.nav-cmd svg{width:14px;height:14px}
+
+/* ── Main ── */
+main{max-width:1400px;margin:0 auto;padding:24px 28px 60px}
+.page{display:none;animation:pageIn .5s cubic-bezier(.16,1,.3,1)}
 .page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
 
-/* Cards & forms */
-.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.add-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.add-row input,.add-row select{border:1.5px solid #ddd;border-radius:10px;padding:10px 14px;font-size:14px;background:#fff;outline:none;transition:.15s}
-.add-row input:focus,.add-row select:focus{border-color:#2d7a4f}
-.add-row input{flex:1;min-width:180px}
-.add-row select{min-width:120px}
-textarea{width:100%;border:1.5px solid #ddd;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;resize:vertical;min-height:90px;outline:none;transition:.15s}
-textarea:focus{border-color:#2d7a4f}
-.btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:.15s}
-.btn-green{background:#2d7a4f;color:#fff}
-.btn-green:hover{background:#1a4731}
-.btn-green:active{transform:scale(.97)}
+/* ── Section title ── */
+.section-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;color:var(--neon-green);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.section-title::before{content:'';width:4px;height:14px;background:var(--neon-green);box-shadow:var(--glow-green)}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border-bright),transparent)}
 
-/* Tags */
-.tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
-.tag-feature{background:#dbeafe;color:#2563eb}
-.tag-bug{background:#fee2e2;color:#dc2626}
-.tag-infra{background:#ede9fe;color:#7c3aed}
-.tag-research{background:#fef3c7;color:#d97706}
-.tag-high{background:#fee2e2;color:#dc2626}
-.tag-medium{background:#fef3c7;color:#d97706}
-.tag-low{background:#dbeafe;color:#2563eb}
-.tag-dev{background:#dbeafe;color:#2563eb}
-.tag-testing{background:#fef3c7;color:#d97706}
-.tag-deployment{background:#d1fae5;color:#059669}
-.tag-planning{background:#ede9fe;color:#7c3aed}
+/* ══════════════════════════════
+   HERO STATS
+   ══════════════════════════════ */
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:16px;margin-bottom:24px}
+.glass{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;backdrop-filter:blur(20px);position:relative;overflow:hidden;transition:all .3s}
+.glass::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border-bright),transparent)}
+.glass:hover{border-color:var(--border-bright);transform:translateY(-2px)}
+.hero-main{padding:24px;display:flex;align-items:center;gap:24px}
+.ring-wrap{position:relative;width:160px;height:160px;flex-shrink:0}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 0 8px rgba(0,255,157,.6))}
+.ring-track{fill:none;stroke:rgba(0,255,170,.1);stroke-width:5}
+.ring-fill{fill:none;stroke:url(#ring-grad);stroke-width:5;stroke-linecap:round;stroke-dasharray:282.74;stroke-dashoffset:282.74;animation:ringFill 2s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes ringFill{to{stroke-dashoffset:var(--off,76.34)}}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-val{font-family:'Orbitron',sans-serif;font-size:38px;font-weight:800;background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ring-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-top:2px}
+.hero-info{flex:1}
+.hero-info h2{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px}
+.hero-info p{color:var(--text-mid);font-size:13px;line-height:1.6;margin-bottom:12px}
+.hero-info .tag-row{display:flex;gap:6px;flex-wrap:wrap}
+.mini-tag{padding:3px 10px;background:rgba(0,255,170,.08);border:1px solid var(--border);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--neon-green);text-transform:uppercase}
+.mini-tag.cyan{background:rgba(0,229,255,.08);color:var(--neon-cyan)}
+.mini-tag.purple{background:rgba(192,132,252,.08);color:var(--neon-purple)}
 
-/* Items */
-.item{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #eee;border-radius:12px;margin-bottom:8px;background:#fff;transition:.15s;animation:fadeIn .25s}
-.item:hover{border-color:#c8e6c9}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.item-text{flex:1;font-size:14px;font-weight:500}
-.item-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.x-btn{width:28px;height:28px;border-radius:8px;border:none;background:#f3f4f6;color:#9ca3af;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
-.x-btn:hover{background:#fee2e2;color:#dc2626}
+.hero-stat{padding:20px;display:flex;flex-direction:column;justify-content:center;position:relative}
+.hero-stat .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px}
+.hero-stat .value{font-family:'Orbitron',sans-serif;font-size:36px;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--c1,var(--neon-green)),var(--c2,var(--neon-cyan)));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-stat .sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-mid);margin-top:6px;letter-spacing:.5px}
+.hero-stat .trend{position:absolute;top:18px;right:18px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--neon-green);background:rgba(0,255,157,.08);padding:3px 8px;border-radius:5px}
 
-/* Checkbox */
-.check{width:22px;height:22px;border-radius:7px;border:2px solid #d1d5db;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;background:#fff}
-.check.on{background:#2d7a4f;border-color:#2d7a4f}
-.check.on::after{content:'✓';color:#fff;font-size:13px;font-weight:800}
-.done-text{text-decoration:line-through;opacity:.45}
+/* ══════════════════════════════
+   METRICS BAR
+   ══════════════════════════════ */
+.metrics-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
+.metric{padding:16px;text-align:center}
+.metric .v{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:var(--neon-green)}
+.metric .l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--text-dim);text-transform:uppercase;margin-top:4px}
+.metric.cyan .v{color:var(--neon-cyan)}
+.metric.purple .v{color:var(--neon-purple)}
+.metric.yellow .v{color:var(--neon-yellow)}
+.metric.orange .v{color:var(--neon-orange)}
+.metric.pink .v{color:var(--neon-pink)}
 
-/* Pipeline columns */
-.pipeline-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.col{background:#f3f4f6;border-radius:14px;padding:14px;min-height:200px}
-.col-head{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.col-head .cnt{background:rgba(0,0,0,.1);border-radius:99px;padding:2px 8px;font-size:11px}
-.col-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:.15s}
-.col-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
-.col-card .title{font-size:13px;font-weight:600;margin-bottom:6px}
-.col-card .meta{display:flex;gap:6px;align-items:center}
+/* ══════════════════════════════
+   MODULES GRID
+   ══════════════════════════════ */
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.module-card{padding:18px;cursor:pointer;position:relative;overflow:hidden}
+.module-card::after{content:'';position:absolute;bottom:0;left:0;height:3px;width:var(--p,0%);background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan));box-shadow:0 0 12px rgba(0,255,157,.6);transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.module-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.module-icon{width:42px;height:42px;border-radius:10px;background:rgba(0,255,170,.08);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px}
+.module-status{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;padding:4px 8px;border-radius:5px;text-transform:uppercase;font-weight:600}
+.module-status.active{background:rgba(0,255,157,.12);color:var(--neon-green);border:1px solid rgba(0,255,157,.3)}
+.module-status.beta{background:rgba(255,217,61,.12);color:var(--neon-yellow);border:1px solid rgba(255,217,61,.3)}
+.module-status.planning{background:rgba(148,163,184,.12);color:var(--text-mid);border:1px solid rgba(148,163,184,.3)}
+.module-status.production{background:rgba(192,132,252,.12);color:var(--neon-purple);border:1px solid rgba(192,132,252,.3)}
+.module-card h3{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.module-card .desc{font-size:12px;color:var(--text-mid);line-height:1.5;margin-bottom:14px;min-height:36px}
+.module-progress{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.module-progress .bar{flex:1;height:6px;background:rgba(0,255,170,.08);border-radius:99px;overflow:hidden}
+.module-progress .fill{height:100%;background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan));border-radius:99px;box-shadow:0 0 8px rgba(0,255,157,.5);width:0;transition:width 1.5s cubic-bezier(.16,1,.3,1)}
+.module-progress .pct{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--neon-green);min-width:38px;text-align:right}
+.module-meta{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;padding-top:8px;border-top:1px solid var(--border)}
 
-/* Milestone */
-.ms-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.ms-dot.not-started{background:#d1d5db}.ms-dot.in-progress{background:#3b82f6}.ms-dot.done{background:#22c55e}.ms-dot.blocked{background:#ef4444}
-.ms-badge{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer}
-.ms-badge.not-started{background:#f3f4f6;color:#6b7280}.ms-badge.in-progress{background:#dbeafe;color:#2563eb}.ms-badge.done{background:#d1fae5;color:#059669}.ms-badge.blocked{background:#fee2e2;color:#dc2626}
+/* ══════════════════════════════
+   ACTIVITY FEED
+   ══════════════════════════════ */
+.split-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:24px}
+.feed-panel{padding:18px}
+.feed-panel h3{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--neon-cyan);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.feed-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(0,255,170,.08);font-size:13px;animation:feedIn .5s ease}
+.feed-item:last-child{border:none}
+@keyframes feedIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.feed-dot{width:8px;height:8px;border-radius:50%;background:var(--neon-green);box-shadow:0 0 8px var(--neon-green);margin-top:5px;flex-shrink:0}
+.feed-dot.cyan{background:var(--neon-cyan);box-shadow:0 0 8px var(--neon-cyan)}
+.feed-dot.purple{background:var(--neon-purple);box-shadow:0 0 8px var(--neon-purple)}
+.feed-dot.yellow{background:var(--neon-yellow);box-shadow:0 0 8px var(--neon-yellow)}
+.feed-content{flex:1}
+.feed-content .msg{color:var(--text-bright);margin-bottom:3px;line-height:1.5}
+.feed-content .meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.5px}
 
-/* Stats */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.stat{background:#fff;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#6b7280}
-.stat-num{font-size:30px;font-weight:800;margin:4px 0}
-.stat-num.green{color:#2d7a4f}.stat-num.blue{color:#3b82f6}.stat-num.amber{color:#d97706}.stat-num.red{color:#ef4444}
+/* ══════════════════════════════
+   TECH STACK
+   ══════════════════════════════ */
+.tech-panel{padding:18px}
+.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tech-item{background:rgba(0,255,170,.04);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;align-items:center;gap:8px;transition:all .2s}
+.tech-item:hover{background:rgba(0,255,170,.08);border-color:var(--border-bright);transform:translateX(3px)}
+.tech-item .cat{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--neon-cyan);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:2px}
+.tech-item strong{color:var(--text-bright);font-weight:500}
 
-/* Toast */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a4731;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.2);opacity:0;transition:.3s;z-index:999;pointer-events:none}
+/* ══════════════════════════════
+   PIPELINE / KANBAN
+   ══════════════════════════════ */
+.add-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.add-row input,.add-row select,.add-row textarea{background:rgba(10,20,40,.6);border:1px solid var(--border);color:var(--text-bright);padding:10px 14px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:.2s;backdrop-filter:blur(10px)}
+.add-row input::placeholder{color:var(--text-dim)}
+.add-row input:focus,.add-row select:focus,.add-row textarea:focus{border-color:var(--neon-green);box-shadow:0 0 0 3px rgba(0,255,157,.1)}
+.add-row input{flex:1;min-width:200px}
+.add-row select{min-width:130px;cursor:pointer}
+.btn-cmd{background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));color:var(--bg-deep);border:none;padding:10px 22px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;transition:all .25s;box-shadow:0 0 0 0 rgba(0,255,157,.5)}
+.btn-cmd:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,255,157,.4)}
+.btn-cmd:active{transform:translateY(0)}
+
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kcol{background:rgba(5,10,20,.4);border:1px solid var(--border);border-radius:14px;padding:14px;min-height:300px;backdrop-filter:blur(10px)}
+.kcol-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.kcol-head .name{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.kcol-head .cnt{background:rgba(0,255,170,.1);border:1px solid var(--border);color:var(--neon-green);padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600}
+.kcol.backlog .name{color:var(--text-mid)} .kcol.backlog .cnt{color:var(--text-mid)}
+.kcol.progress .name{color:var(--neon-cyan)} .kcol.progress .cnt{color:var(--neon-cyan);background:rgba(0,229,255,.1)}
+.kcol.review .name{color:var(--neon-yellow)} .kcol.review .cnt{color:var(--neon-yellow);background:rgba(255,217,61,.1)}
+.kcol.done .name{color:var(--neon-green)} .kcol.done .cnt{color:var(--neon-green)}
+.kcard{background:rgba(15,25,45,.6);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:grab;transition:all .2s;animation:cardIn .35s cubic-bezier(.16,1,.3,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.kcard:hover{border-color:var(--border-bright);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.kcard:active{cursor:grabbing}
+.kcard.drag{opacity:.4}
+.kcard .title{font-size:13px;font-weight:500;margin-bottom:8px;line-height:1.4}
+.kcard .row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tag{display:inline-block;padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.tag-feature{background:rgba(0,229,255,.12);color:var(--neon-cyan);border:1px solid rgba(0,229,255,.3)}
+.tag-bug{background:rgba(255,71,87,.12);color:var(--neon-red);border:1px solid rgba(255,71,87,.3)}
+.tag-infra{background:rgba(192,132,252,.12);color:var(--neon-purple);border:1px solid rgba(192,132,252,.3)}
+.tag-research{background:rgba(255,217,61,.12);color:var(--neon-yellow);border:1px solid rgba(255,217,61,.3)}
+.tag-ml{background:rgba(255,110,196,.12);color:var(--neon-pink);border:1px solid rgba(255,110,196,.3)}
+.x-btn{width:24px;height:24px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--text-dim);font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.15s;line-height:1}
+.x-btn:hover{background:rgba(255,71,87,.1);color:var(--neon-red);border-color:rgba(255,71,87,.3)}
+.drag-over{background:rgba(0,255,157,.05);border-color:var(--neon-green)!important}
+
+/* ══════════════════════════════
+   ROADMAP TIMELINE
+   ══════════════════════════════ */
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:11px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--neon-green),var(--neon-cyan),var(--neon-purple))}
+.tl-item{position:relative;padding:14px 18px;margin-bottom:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(10px);transition:.25s;animation:cardIn .4s ease}
+.tl-item:hover{border-color:var(--border-bright);transform:translateX(4px)}
+.tl-item::before{content:'';position:absolute;left:-26px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:var(--bg-deep);border:2px solid var(--neon-green);box-shadow:0 0 12px var(--neon-green)}
+.tl-item.in-progress::before{border-color:var(--neon-cyan);box-shadow:0 0 12px var(--neon-cyan)}
+.tl-item.done::before{background:var(--neon-green);border-color:var(--neon-green)}
+.tl-item.blocked::before{border-color:var(--neon-red);box-shadow:0 0 12px var(--neon-red)}
+.tl-item .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tl-item .info{flex:1;min-width:200px}
+.tl-item .ttl{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;margin-bottom:3px}
+.tl-item .dt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:1px}
+.ms-badge{padding:4px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:.2s}
+.ms-badge.not-started{background:rgba(148,163,184,.1);color:var(--text-mid);border:1px solid rgba(148,163,184,.3)}
+.ms-badge.in-progress{background:rgba(0,229,255,.12);color:var(--neon-cyan);border:1px solid rgba(0,229,255,.3)}
+.ms-badge.done{background:rgba(0,255,157,.12);color:var(--neon-green);border:1px solid rgba(0,255,157,.3)}
+.ms-badge.blocked{background:rgba(255,71,87,.12);color:var(--neon-red);border:1px solid rgba(255,71,87,.3)}
+.ms-badge:hover{transform:scale(1.05)}
+
+/* ══════════════════════════════
+   TO-DO LIST
+   ══════════════════════════════ */
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.fbtn{background:rgba(10,20,40,.4);border:1px solid var(--border);color:var(--text-mid);padding:7px 16px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;transition:.2s}
+.fbtn:hover{color:var(--neon-cyan);border-color:rgba(0,229,255,.4)}
+.fbtn.active{background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));color:var(--bg-deep);border-color:transparent;box-shadow:var(--glow-green)}
+.todo-item{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;backdrop-filter:blur(10px);transition:.2s;animation:cardIn .35s ease}
+.todo-item:hover{border-color:var(--border-bright);transform:translateX(2px)}
+.check{width:22px;height:22px;border-radius:7px;border:2px solid var(--text-mid);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;background:transparent}
+.check:hover{border-color:var(--neon-green)}
+.check.on{background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));border-color:transparent;box-shadow:var(--glow-green)}
+.check.on::after{content:'✓';color:var(--bg-deep);font-size:13px;font-weight:800}
+.todo-text{flex:1;font-size:14px;font-weight:400}
+.done-text{text-decoration:line-through;color:var(--text-dim)}
+.todo-meta{display:flex;gap:8px;align-items:center}
+.tag-high{background:rgba(255,71,87,.12);color:var(--neon-red);border:1px solid rgba(255,71,87,.3);padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.tag-medium{background:rgba(255,217,61,.12);color:var(--neon-yellow);border:1px solid rgba(255,217,61,.3);padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.tag-low{background:rgba(0,229,255,.12);color:var(--neon-cyan);border:1px solid rgba(0,229,255,.3);padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.todo-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.5px}
+
+/* ══════════════════════════════
+   ANALYTICS
+   ══════════════════════════════ */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;margin-bottom:24px}
+.chart-card{padding:20px}
+.chart-card h3{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--neon-cyan);text-transform:uppercase;margin-bottom:18px}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:160px;padding-bottom:30px;position:relative}
+.bar-chart::before,.bar-chart::after{content:'';position:absolute;left:0;right:0;height:1px;background:var(--border)}
+.bar-chart::before{bottom:30px}
+.bar-chart::after{top:0}
+.bar{flex:1;background:linear-gradient(180deg,var(--neon-green),rgba(0,255,157,.2));border-radius:4px 4px 0 0;position:relative;transition:all .3s;animation:barUp 1.2s cubic-bezier(.16,1,.3,1);transform-origin:bottom}
+.bar:hover{filter:brightness(1.3);box-shadow:0 0 12px rgba(0,255,157,.5)}
+@keyframes barUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.bar::after{content:attr(data-l);position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:.5px}
+.bar::before{content:attr(data-v);position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--neon-green);font-weight:600}
+.line-stats{display:flex;justify-content:space-between;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
+.line-stats div{text-align:center}
+.line-stats .v{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:var(--neon-green)}
+.line-stats .l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+.gauge-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:space-around}
+.gauge{text-align:center;flex:1;min-width:120px}
+.gauge svg{width:120px;height:120px;transform:rotate(-90deg);filter:drop-shadow(0 0 6px rgba(0,255,157,.4))}
+.gauge .gv{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:var(--neon-green);margin-top:-65px;position:relative;z-index:2}
+.gauge .gl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-top:50px}
+
+/* ══════════════════════════════
+   PROGRESS LOG
+   ══════════════════════════════ */
+.log-add{padding:20px;margin-bottom:20px}
+.log-add textarea{width:100%;min-height:90px;background:rgba(10,20,40,.6);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text-bright);font-family:'Inter',sans-serif;font-size:13px;resize:vertical;outline:none;transition:.2s}
+.log-add textarea:focus{border-color:var(--neon-green);box-shadow:0 0 0 3px rgba(0,255,157,.1)}
+.log-add-bar{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.log-entry{padding:16px 20px;border-left:3px solid var(--neon-green);background:var(--bg-card);margin-bottom:10px;border-radius:0 12px 12px 0;backdrop-filter:blur(10px);animation:cardIn .35s ease}
+.log-entry:hover{background:var(--bg-card-hover)}
+.log-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.log-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--neon-green);font-weight:600;letter-spacing:1px}
+.log-cat{padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.log-cat.dev{background:rgba(0,229,255,.12);color:var(--neon-cyan)}
+.log-cat.research{background:rgba(192,132,252,.12);color:var(--neon-purple)}
+.log-cat.testing{background:rgba(255,217,61,.12);color:var(--neon-yellow)}
+.log-cat.deployment{background:rgba(0,255,157,.12);color:var(--neon-green)}
+.log-cat.planning{background:rgba(255,110,196,.12);color:var(--neon-pink)}
+.log-body{font-size:13px;color:var(--text-bright);line-height:1.65}
+
+.empty{text-align:center;padding:40px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(120px);background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));color:var(--bg-deep);padding:14px 28px;border-radius:12px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 10px 40px rgba(0,255,157,.4);opacity:0;transition:.4s cubic-bezier(.16,1,.3,1);z-index:999;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
-.empty{text-align:center;padding:32px;color:#9ca3af;font-size:14px}
-
-/* Filters */
-.filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.fbtn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer;transition:.15s}
-.fbtn.active{background:#1a4731;color:#fff;border-color:#1a4731}
-
-/* Log */
-.log-entry{padding:14px 0;border-bottom:1px solid #f0f0f0}
-.log-entry:last-child{border:none}
-.log-head{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-.log-date{font-size:12px;font-weight:700;color:#2d7a4f}
-.log-body{font-size:14px;line-height:1.6;color:#374151}
-
-@media(max-width:768px){
-  .stats{grid-template-columns:1fr 1fr}
-  .pipeline-grid{grid-template-columns:1fr 1fr}
-  .tabs{flex-wrap:wrap}
-  header{flex-direction:column;gap:12px;text-align:center}
+@media(max-width:1024px){
+  .hero-grid{grid-template-columns:1fr}
+  .metrics-bar{grid-template-columns:repeat(3,1fr)}
+  .split-2{grid-template-columns:1fr}
+  .kanban{grid-template-columns:repeat(2,1fr)}
 }
-@media(max-width:500px){
-  .pipeline-grid{grid-template-columns:1fr}
-  .stats{grid-template-columns:1fr}
-  .add-row{flex-direction:column}
+@media(max-width:640px){
+  .hud{padding:12px 16px}
+  .hud-stats{gap:14px}
+  main{padding:16px}
+  .cmd-nav{padding:12px 16px 0}
+  .metrics-bar{grid-template-columns:repeat(2,1fr)}
+  .kanban{grid-template-columns:1fr}
+  .hero-main{flex-direction:column;text-align:center}
 }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🌾 Harvester<em>CropAccess AgriTech</em></h1>
-  <div class="tabs" id="tabs">
-    <button class="tab active" data-p="dashboard">Dashboard</button>
-    <button class="tab" data-p="pipeline">Pipeline</button>
-    <button class="tab" data-p="roadmap">Roadmap</button>
-    <button class="tab" data-p="todo">To-Do</button>
-    <button class="tab" data-p="logs">Progress</button>
+<div class="bg-grid"></div>
+<div class="bg-radial"></div>
+<div class="bg-noise"></div>
+<div class="scanline"></div>
+
+<header class="hud">
+  <div class="hud-inner">
+    <div class="brand">
+      <div class="brand-mark">🌾</div>
+      <div class="brand-text">
+        <h1>CROPACCESS</h1>
+        <div class="sub">AgriTech Command Center · v2.4.1</div>
+      </div>
+    </div>
+    <div class="hud-stats">
+      <div class="hud-stat"><span><span class="live-dot"></span>SYSTEM ONLINE</span></div>
+      <div class="hud-stat">UPTIME<span>99.7%</span></div>
+      <div class="hud-stat">SECTOR<span>IN · MAHARASHTRA</span></div>
+      <div id="hud-clock">--:--:--</div>
+    </div>
   </div>
 </header>
 
+<nav class="cmd-nav">
+  <button class="nav-cmd active" data-p="dashboard">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    COMMAND
+  </button>
+  <button class="nav-cmd" data-p="pipeline">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+    PIPELINE
+  </button>
+  <button class="nav-cmd" data-p="roadmap">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+    ROADMAP
+  </button>
+  <button class="nav-cmd" data-p="todo">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    TASKS
+  </button>
+  <button class="nav-cmd" data-p="analytics">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    ANALYTICS
+  </button>
+  <button class="nav-cmd" data-p="logs">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    PROGRESS LOG
+  </button>
+</nav>
+
 <main>
-  <!-- DASHBOARD -->
-  <div class="page active" id="p-dashboard">
-    <div class="stats" id="stats"></div>
-    <div class="card"><h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Today's Tasks</h3><div id="dash-today"></div></div>
-    <div class="card" style="margin-top:16px"><h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Recent Logs</h3><div id="dash-logs"></div></div>
-  </div>
 
-  <!-- PIPELINE -->
-  <div class="page" id="p-pipeline">
-    <div class="add-row">
-      <input type="text" id="pi-input" placeholder="New pipeline task...">
-      <select id="pi-type"><option>feature</option><option>bug</option><option>infra</option><option>research</option></select>
-      <select id="pi-col"><option value="backlog">Backlog</option><option value="progress">In Progress</option><option value="review">Review</option><option value="done">Done</option></select>
-      <button class="btn btn-green" id="pi-add">+ Add Task</button>
-    </div>
-    <div class="pipeline-grid">
-      <div class="col"><div class="col-head">Backlog <span class="cnt" id="c-backlog">0</span></div><div id="z-backlog"></div></div>
-      <div class="col"><div class="col-head" style="color:#2563eb">In Progress <span class="cnt" id="c-progress">0</span></div><div id="z-progress"></div></div>
-      <div class="col"><div class="col-head" style="color:#d97706">Review <span class="cnt" id="c-review">0</span></div><div id="z-review"></div></div>
-      <div class="col"><div class="col-head" style="color:#22c55e">Done <span class="cnt" id="c-done">0</span></div><div id="z-done"></div></div>
-    </div>
-  </div>
+<!-- ════════════════════════════════════════
+     COMMAND CENTER (DASHBOARD)
+     ════════════════════════════════════════ -->
+<section class="page active" id="p-dashboard">
 
-  <!-- ROADMAP -->
-  <div class="page" id="p-roadmap">
-    <div class="add-row">
-      <input type="text" id="ms-input" placeholder="Milestone title...">
-      <input type="date" id="ms-date">
-      <select id="ms-status"><option value="not-started">Not Started</option><option value="in-progress">In Progress</option><option value="done">Done</option><option value="blocked">Blocked</option></select>
-      <button class="btn btn-green" id="ms-add">+ Add Milestone</button>
-    </div>
-    <div id="ms-list"></div>
-  </div>
+  <div class="section-title">MISSION OVERVIEW</div>
 
-  <!-- TO-DO -->
-  <div class="page" id="p-todo">
-    <div class="add-row">
-      <input type="text" id="td-input" placeholder="Add a new task...">
-      <select id="td-pri"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select>
-      <button class="btn btn-green" id="td-add">+ Add Task</button>
-    </div>
-    <div class="filters" id="td-filters">
-      <button class="fbtn active" data-f="all">All</button>
-      <button class="fbtn" data-f="active">Active</button>
-      <button class="fbtn" data-f="done">Done</button>
-      <button class="fbtn" data-f="high">High Priority</button>
-    </div>
-    <div id="td-list"></div>
-  </div>
-
-  <!-- PROGRESS LOG -->
-  <div class="page" id="p-logs">
-    <div class="card" style="margin-bottom:20px">
-      <h3 style="font-size:15px;font-weight:700;margin-bottom:10px">Log Today's Progress</h3>
-      <textarea id="lg-text" placeholder="What did you work on today?"></textarea>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
-        <select id="lg-cat" style="border:1.5px solid #ddd;border-radius:10px;padding:10px 14px;font-size:14px"><option value="dev">Development</option><option value="research">Research</option><option value="testing">Testing</option><option value="deployment">Deployment</option><option value="planning">Planning</option></select>
-        <button class="btn btn-green" id="lg-add">Save Log</button>
+  <div class="hero-grid">
+    <div class="glass hero-main">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00ff9d"/>
+              <stop offset="100%" stop-color="#00e5ff"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-track" cx="50" cy="50" r="45"/>
+          <circle class="ring-fill" cx="50" cy="50" r="45" style="--off:76.34"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-val" data-count="73">73%</div>
+          <div class="ring-label">OVERALL</div>
+        </div>
+      </div>
+      <div class="hero-info">
+        <h2>CROPACCESS // PHASE 3</h2>
+        <p>Smart farming platform combining IoT sensors, ML yield prediction, and real-time field analytics for next-gen agricultural intelligence. Currently in active development.</p>
+        <div class="tag-row">
+          <span class="mini-tag">SENSORS LIVE</span>
+          <span class="mini-tag cyan">ML BETA</span>
+          <span class="mini-tag purple">SPRINT 14</span>
+        </div>
       </div>
     </div>
-    <div id="lg-list"></div>
+
+    <div class="glass hero-stat" style="--c1:#00ff9d;--c2:#00e5ff">
+      <span class="trend">+12.4%</span>
+      <div class="label">PREDICTION ACCURACY</div>
+      <div class="value" data-count="91.3">91.3<small style="font-size:.5em">%</small></div>
+      <div class="sub">ML MODEL · TRAINED ON 2.3M POINTS</div>
+    </div>
+
+    <div class="glass hero-stat" style="--c1:#c084fc;--c2:#ff6ec4">
+      <span class="trend">+8.2%</span>
+      <div class="label">SENSOR UPTIME</div>
+      <div class="value" data-count="96.8">96.8<small style="font-size:.5em">%</small></div>
+      <div class="sub">147 DEVICES ACTIVE · 24/7 MONITORING</div>
+    </div>
   </div>
+
+  <div class="metrics-bar">
+    <div class="glass metric"><div class="v" data-count="23">23</div><div class="l">ACTIVE FARMS</div></div>
+    <div class="glass metric cyan"><div class="v" data-count="147">147</div><div class="l">IoT DEVICES</div></div>
+    <div class="glass metric purple"><div class="v" data-count="1840">1,840</div><div class="l">HECTARES</div></div>
+    <div class="glass metric yellow"><div class="v" data-count="2.3">2.3M</div><div class="l">DATA POINTS/DAY</div></div>
+    <div class="glass metric orange"><div class="v" data-count="142">142ms</div><div class="l">API LATENCY</div></div>
+    <div class="glass metric pink"><div class="v" data-count="89">89</div><div class="l">USERS ONLINE</div></div>
+  </div>
+
+  <div class="section-title">PROJECT MODULES</div>
+  <div class="modules-grid" id="modules-grid"></div>
+
+  <div class="split-2">
+    <div class="glass feed-panel">
+      <h3>ACTIVITY FEED <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-dim)"><span class="live-dot"></span>LIVE</span></h3>
+      <div id="activity-feed"></div>
+    </div>
+
+    <div class="glass tech-panel">
+      <h3 style="color:var(--neon-purple)">TECH STACK</h3>
+      <div class="tech-grid">
+        <div class="tech-item"><div><span class="cat">FRONTEND</span><strong>React · Next.js</strong></div></div>
+        <div class="tech-item"><div><span class="cat">MOBILE</span><strong>React Native</strong></div></div>
+        <div class="tech-item"><div><span class="cat">BACKEND</span><strong>FastAPI · Node</strong></div></div>
+        <div class="tech-item"><div><span class="cat">ML / AI</span><strong>TensorFlow · PyTorch</strong></div></div>
+        <div class="tech-item"><div><span class="cat">DATABASE</span><strong>PostgreSQL · TimescaleDB</strong></div></div>
+        <div class="tech-item"><div><span class="cat">CLOUD</span><strong>AWS · SageMaker</strong></div></div>
+        <div class="tech-item"><div><span class="cat">IoT</span><strong>MQTT · LoRaWAN</strong></div></div>
+        <div class="tech-item"><div><span class="cat">MAPS</span><strong>Mapbox · Earth Engine</strong></div></div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════════════════════════════════════════
+     PIPELINE
+     ════════════════════════════════════════ -->
+<section class="page" id="p-pipeline">
+  <div class="section-title">DEVELOPMENT PIPELINE</div>
+  <div class="add-row">
+    <input type="text" id="pi-input" placeholder="New task identifier...">
+    <select id="pi-type">
+      <option value="feature">FEATURE</option>
+      <option value="bug">BUG</option>
+      <option value="infra">INFRA</option>
+      <option value="research">RESEARCH</option>
+      <option value="ml">ML / AI</option>
+    </select>
+    <select id="pi-col">
+      <option value="backlog">BACKLOG</option>
+      <option value="progress">IN PROGRESS</option>
+      <option value="review">REVIEW</option>
+      <option value="done">DONE</option>
+    </select>
+    <button class="btn-cmd" id="pi-add">+ DEPLOY TASK</button>
+  </div>
+  <div class="kanban">
+    <div class="kcol backlog"><div class="kcol-head"><span class="name">Backlog</span><span class="cnt" id="c-backlog">0</span></div><div id="z-backlog"></div></div>
+    <div class="kcol progress"><div class="kcol-head"><span class="name">In Progress</span><span class="cnt" id="c-progress">0</span></div><div id="z-progress"></div></div>
+    <div class="kcol review"><div class="kcol-head"><span class="name">Review</span><span class="cnt" id="c-review">0</span></div><div id="z-review"></div></div>
+    <div class="kcol done"><div class="kcol-head"><span class="name">Done</span><span class="cnt" id="c-done">0</span></div><div id="z-done"></div></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     ROADMAP
+     ════════════════════════════════════════ -->
+<section class="page" id="p-roadmap">
+  <div class="section-title">STRATEGIC ROADMAP</div>
+  <div class="add-row">
+    <input type="text" id="ms-input" placeholder="Milestone title...">
+    <input type="date" id="ms-date">
+    <select id="ms-status">
+      <option value="not-started">NOT STARTED</option>
+      <option value="in-progress">IN PROGRESS</option>
+      <option value="done">DONE</option>
+      <option value="blocked">BLOCKED</option>
+    </select>
+    <button class="btn-cmd" id="ms-add">+ ADD MILESTONE</button>
+  </div>
+  <div class="timeline" id="ms-list"></div>
+</section>
+
+<!-- ════════════════════════════════════════
+     TO-DO
+     ════════════════════════════════════════ -->
+<section class="page" id="p-todo">
+  <div class="section-title">TASK QUEUE</div>
+  <div class="add-row">
+    <input type="text" id="td-input" placeholder="Add task to queue...">
+    <select id="td-pri">
+      <option value="medium">MEDIUM</option>
+      <option value="high">HIGH</option>
+      <option value="low">LOW</option>
+    </select>
+    <button class="btn-cmd" id="td-add">+ ENQUEUE</button>
+  </div>
+  <div class="filters" id="td-filters">
+    <button class="fbtn active" data-f="all">ALL</button>
+    <button class="fbtn" data-f="active">ACTIVE</button>
+    <button class="fbtn" data-f="done">DONE</button>
+    <button class="fbtn" data-f="high">HIGH PRIORITY</button>
+  </div>
+  <div id="td-list"></div>
+</section>
+
+<!-- ════════════════════════════════════════
+     ANALYTICS
+     ════════════════════════════════════════ -->
+<section class="page" id="p-analytics">
+  <div class="section-title">SYSTEM ANALYTICS</div>
+
+  <div class="chart-grid">
+    <div class="glass chart-card">
+      <h3>MODEL ACCURACY · LAST 8 WEEKS</h3>
+      <div class="bar-chart">
+        <div class="bar" style="height:62%" data-l="W1" data-v="78"></div>
+        <div class="bar" style="height:68%" data-l="W2" data-v="81"></div>
+        <div class="bar" style="height:71%" data-l="W3" data-v="83"></div>
+        <div class="bar" style="height:74%" data-l="W4" data-v="85"></div>
+        <div class="bar" style="height:78%" data-l="W5" data-v="87"></div>
+        <div class="bar" style="height:82%" data-l="W6" data-v="89"></div>
+        <div class="bar" style="height:85%" data-l="W7" data-v="90"></div>
+        <div class="bar" style="height:92%" data-l="W8" data-v="91"></div>
+      </div>
+      <div class="line-stats">
+        <div><div class="v">91.3%</div><div class="l">CURRENT</div></div>
+        <div><div class="v">+13.3</div><div class="l">DELTA</div></div>
+        <div><div class="v">95%</div><div class="l">TARGET</div></div>
+      </div>
+    </div>
+
+    <div class="glass chart-card">
+      <h3>SENSOR DATA · HOURLY THROUGHPUT</h3>
+      <div class="bar-chart">
+        <div class="bar" style="height:45%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="00" data-v="42K"></div>
+        <div class="bar" style="height:38%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="03" data-v="35K"></div>
+        <div class="bar" style="height:52%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="06" data-v="48K"></div>
+        <div class="bar" style="height:78%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="09" data-v="72K"></div>
+        <div class="bar" style="height:95%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="12" data-v="88K"></div>
+        <div class="bar" style="height:88%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="15" data-v="82K"></div>
+        <div class="bar" style="height:68%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="18" data-v="63K"></div>
+        <div class="bar" style="height:48%;background:linear-gradient(180deg,var(--neon-cyan),rgba(0,229,255,.2))" data-l="21" data-v="45K"></div>
+      </div>
+      <div class="line-stats">
+        <div><div class="v" style="color:var(--neon-cyan)">2.3M</div><div class="l">TOTAL TODAY</div></div>
+        <div><div class="v" style="color:var(--neon-cyan)">95.8%</div><div class="l">SUCCESS RATE</div></div>
+        <div><div class="v" style="color:var(--neon-cyan)">142ms</div><div class="l">AVG LATENCY</div></div>
+      </div>
+    </div>
+
+    <div class="glass chart-card">
+      <h3 style="color:var(--neon-purple)">MODULE COMPLETION</h3>
+      <div id="module-bars"></div>
+    </div>
+
+    <div class="glass chart-card">
+      <h3 style="color:var(--neon-yellow)">SUCCESS RATE GAUGES</h3>
+      <div class="gauge-row">
+        <div class="gauge">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-track" cx="50" cy="50" r="42"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#00ff9d" stroke-width="6" stroke-linecap="round" stroke-dasharray="263.89" stroke-dashoffset="38" style="filter:drop-shadow(0 0 5px #00ff9d)"/>
+          </svg>
+          <div class="gv">85.5%</div>
+          <div class="gl">CROP HEALTH</div>
+        </div>
+        <div class="gauge">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-track" cx="50" cy="50" r="42"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#00e5ff" stroke-width="6" stroke-linecap="round" stroke-dasharray="263.89" stroke-dashoffset="22" style="filter:drop-shadow(0 0 5px #00e5ff)"/>
+          </svg>
+          <div class="gv" style="color:var(--neon-cyan)">91.7%</div>
+          <div class="gl">YIELD FORECAST</div>
+        </div>
+        <div class="gauge">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-track" cx="50" cy="50" r="42"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#c084fc" stroke-width="6" stroke-linecap="round" stroke-dasharray="263.89" stroke-dashoffset="40" style="filter:drop-shadow(0 0 5px #c084fc)"/>
+          </svg>
+          <div class="gv" style="color:var(--neon-purple)">84.5%</div>
+          <div class="gl">PEST DETECT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-bar" style="grid-template-columns:repeat(4,1fr)">
+    <div class="glass metric"><div class="v">Sprint 14</div><div class="l">CURRENT SPRINT</div></div>
+    <div class="glass metric cyan"><div class="v">42 SP</div><div class="l">VELOCITY</div></div>
+    <div class="glass metric purple"><div class="v">38</div><div class="l">PRs MERGED</div></div>
+    <div class="glass metric yellow"><div class="v">78%</div><div class="l">CODE COVERAGE</div></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     PROGRESS LOG
+     ════════════════════════════════════════ -->
+<section class="page" id="p-logs">
+  <div class="section-title">PROGRESS TRANSMISSION LOG</div>
+  <div class="glass log-add">
+    <textarea id="lg-text" placeholder="// Log today's mission progress..."></textarea>
+    <div class="log-add-bar">
+      <select id="lg-cat" style="background:rgba(10,20,40,.6);border:1px solid var(--border);color:var(--text-bright);padding:10px 14px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;outline:none">
+        <option value="dev">DEVELOPMENT</option>
+        <option value="research">RESEARCH</option>
+        <option value="testing">TESTING</option>
+        <option value="deployment">DEPLOYMENT</option>
+        <option value="planning">PLANNING</option>
+      </select>
+      <button class="btn-cmd" id="lg-add">TRANSMIT LOG</button>
+    </div>
+  </div>
+  <div id="lg-list"></div>
+</section>
+
 </main>
 
 <div id="toast"></div>
@@ -198,94 +657,198 @@ textarea:focus{border-color:#2d7a4f}
 <script>
 (function(){
   /* ─── Storage ─── */
-  function g(k){try{var v=localStorage.getItem('hv_'+k);return v?JSON.parse(v):null}catch(e){return null}}
-  function s(k,v){try{localStorage.setItem('hv_'+k,JSON.stringify(v))}catch(e){}}
-
-  /* ─── State ─── */
-  var tasks=g('tasks')||[
-    {id:1,title:'Sensor data ingestion module',type:'feature',col:'progress'},
-    {id:2,title:'Crop yield prediction model',type:'research',col:'backlog'},
-    {id:3,title:'IoT device connectivity fix',type:'bug',col:'review'},
-    {id:4,title:'Field map UI component',type:'feature',col:'backlog'},
-    {id:5,title:'Initial DB schema migration',type:'infra',col:'done'}
-  ];
-  var milestones=g('milestones')||[
-    {id:1,title:'MVP Sensor Integration',date:'2026-06-15',status:'in-progress'},
-    {id:2,title:'Field Data Dashboard v1',date:'2026-07-01',status:'not-started'},
-    {id:3,title:'Yield Prediction Beta',date:'2026-08-01',status:'not-started'},
-    {id:4,title:'Farmer App Launch',date:'2026-09-15',status:'not-started'},
-    {id:5,title:'Infrastructure Setup',date:'2026-05-20',status:'done'}
-  ];
-  var todos=g('todos')||[
-    {id:1,text:'Review sensor API docs',pri:'high',done:false,date:'2026-05-26'},
-    {id:2,text:'Write unit tests for ingestion',pri:'medium',done:false,date:'2026-05-26'},
-    {id:3,text:'Update roadmap milestones',pri:'low',done:true,date:'2026-05-25'}
-  ];
-  todos.forEach(function(t){if(t.priority&&!t.pri){t.pri=t.priority}if(!t.pri)t.pri='medium'});
-  var logs=g('logs')||[
-    {id:1,text:'Set up initial project structure. Integrated IoT sensor mock data pipeline.',cat:'dev',date:'2026-05-25'}
-  ];
-  logs.forEach(function(l){if(l.category&&!l.cat){l.cat=l.category}if(!l.cat)l.cat='dev'});
-  var nid=g('nid')||100;
-  var filter='all';
-  var dragId=null;
-
-  function save(){s('tasks',tasks);s('milestones',milestones);s('todos',todos);s('logs',logs);s('nid',nid)}
-  function id(){return++nid}
-  function esc(x){var d=document.createElement('div');d.textContent=x;return d.innerHTML}
+  function gs(k){try{var v=localStorage.getItem('hv2_'+k);return v?JSON.parse(v):null}catch(e){return null}}
+  function ss(k,v){try{localStorage.setItem('hv2_'+k,JSON.stringify(v))}catch(e){}}
+  function $(x){return document.getElementById(x)}
+  function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
   function today(){return new Date().toISOString().split('T')[0]}
   function fmt(d){try{return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}catch(e){return d}}
 
+  /* ─── CropAccess Modules (static config) ─── */
+  var modules=[
+    {icon:'📡',name:'SENSOR INGESTION',desc:'Real-time IoT sensor data pipeline from field devices',pct:87,status:'active',stat:'2.3M pts/day'},
+    {icon:'🌾',name:'YIELD PREDICTION ML',desc:'ML model forecasting crop yield with 91.3% accuracy',pct:65,status:'active',stat:'v3.2-beta'},
+    {icon:'📶',name:'IoT DEVICE MGMT',desc:'OTA updates, monitoring & lifecycle for 147 devices',pct:92,status:'active',stat:'147 online'},
+    {icon:'🗺️',name:'FIELD MAPPING GIS',desc:'GIS mapping with satellite imagery & boundary detection',pct:73,status:'active',stat:'1,840 ha'},
+    {icon:'📱',name:'FARMER MOBILE APP',desc:'React Native app — alerts, insights & marketplace access',pct:45,status:'beta',stat:'iOS + Android'},
+    {icon:'🌦️',name:'WEATHER FORECAST',desc:'Hyperlocal weather integration via NOAA + IMD APIs',pct:88,status:'active',stat:'30km grid'},
+    {icon:'🧪',name:'SOIL HEALTH AI',desc:'Soil NPK + moisture analytics with recommendations',pct:56,status:'beta',stat:'12 params'},
+    {icon:'🐛',name:'PEST DETECTION AI',desc:'Computer vision for early pest identification (84.5%)',pct:38,status:'beta',stat:'CNN v1.4'},
+    {icon:'🛒',name:'MARKETPLACE',desc:'Direct farmer-to-buyer marketplace with logistics',pct:22,status:'planning',stat:'Q4 2026'},
+    {icon:'⚙️',name:'ADMIN DASHBOARD',desc:'Internal ops console for farm onboarding & support',pct:95,status:'production',stat:'Live'}
+  ];
+
+  /* ─── Activity feed (static dynamic) ─── */
+  var activity=[
+    {color:'',msg:'<strong>ML Pipeline v3.2</strong> deployed to production. Accuracy improved to 91.3%',meta:'2 min ago · ml-team'},
+    {color:'cyan',msg:'<strong>Field #042 (Pune)</strong> onboarded — 84 hectares of sugarcane added',meta:'18 min ago · ops'},
+    {color:'purple',msg:'<strong>Pest Detection Model</strong> retrained on 12K new images',meta:'1 hour ago · ai-research'},
+    {color:'yellow',msg:'<strong>Sprint 14 review</strong> — 42 story points completed',meta:'3 hours ago · scrum'},
+    {color:'',msg:'<strong>147 IoT devices</strong> firmware update v2.4.1 rolled out',meta:'6 hours ago · devops'},
+    {color:'cyan',msg:'<strong>API latency</strong> reduced from 187ms to 142ms (-24%)',meta:'Yesterday · backend'},
+    {color:'purple',msg:'<strong>Soil moisture model</strong> integrated into Field Mapping GIS',meta:'Yesterday · ml-team'},
+    {color:'',msg:'<strong>CropAccess</strong> reached 1,840 hectares under monitoring',meta:'2 days ago · ops'}
+  ];
+
+  /* ─── Default state with CropAccess data ─── */
+  var defaultTasks=[
+    {id:1,title:'Optimize TensorFlow inference latency on edge devices',type:'ml',col:'progress'},
+    {id:2,title:'Build LoRaWAN gateway monitoring dashboard',type:'feature',col:'progress'},
+    {id:3,title:'Migrate sensor data to TimescaleDB',type:'infra',col:'progress'},
+    {id:4,title:'Implement OAuth2 for Farmer Mobile App',type:'feature',col:'review'},
+    {id:5,title:'Pest detection CNN — augment training dataset',type:'ml',col:'review'},
+    {id:6,title:'Fix moisture sensor calibration drift',type:'bug',col:'review'},
+    {id:7,title:'Hindi & Marathi localization for mobile app',type:'feature',col:'backlog'},
+    {id:8,title:'Marketplace MVP — wireframes & user flows',type:'research',col:'backlog'},
+    {id:9,title:'SHAP explainability for yield predictions',type:'research',col:'backlog'},
+    {id:10,title:'Weather API rate limit handling',type:'bug',col:'backlog'},
+    {id:11,title:'Kubernetes cluster auto-scaling rules',type:'infra',col:'backlog'},
+    {id:12,title:'Farmer onboarding flow — UX research',type:'research',col:'backlog'},
+    {id:13,title:'Initial DB schema & migrations',type:'infra',col:'done'},
+    {id:14,title:'Admin dashboard MVP shipped',type:'feature',col:'done'},
+    {id:15,title:'Sensor data ingestion pipeline v1',type:'infra',col:'done'},
+    {id:16,title:'Weather forecast NOAA integration',type:'feature',col:'done'},
+    {id:17,title:'Field boundary detection model',type:'ml',col:'done'}
+  ];
+
+  var defaultMs=[
+    {id:1,title:'Foundation · Architecture & Cloud Setup',date:'2026-01-15',status:'done'},
+    {id:2,title:'IoT Sensor Network MVP — 50 devices',date:'2026-02-28',status:'done'},
+    {id:3,title:'Admin Dashboard v1 — internal launch',date:'2026-03-30',status:'done'},
+    {id:4,title:'ML Yield Prediction Beta — 85% accuracy',date:'2026-05-15',status:'done'},
+    {id:5,title:'Sensor Network Scale — 150 devices',date:'2026-05-25',status:'done'},
+    {id:6,title:'Pest Detection AI · Beta release',date:'2026-06-15',status:'in-progress'},
+    {id:7,title:'Soil Health Analytics v1',date:'2026-06-30',status:'in-progress'},
+    {id:8,title:'Farmer Mobile App · Public Beta',date:'2026-07-31',status:'not-started'},
+    {id:9,title:'100 Farm Onboarding Milestone',date:'2026-08-30',status:'not-started'},
+    {id:10,title:'Marketplace MVP Launch',date:'2026-10-15',status:'not-started'},
+    {id:11,title:'AI Pest Detection v2 · Production',date:'2026-12-01',status:'not-started'},
+    {id:12,title:'1000 Farms Goal · Series A Ready',date:'2027-03-31',status:'not-started'}
+  ];
+
+  var defaultTodos=[
+    {id:1,text:'Review SHAP integration PR #428',pri:'high',done:false,date:today()},
+    {id:2,text:'Sync with ML team on accuracy thresholds',pri:'high',done:false,date:today()},
+    {id:3,text:'Approve sprint 15 planning doc',pri:'medium',done:false,date:today()},
+    {id:4,text:'Test new pest detection model on staging',pri:'high',done:false,date:today()},
+    {id:5,text:'Update CropAccess investor deck Q2 numbers',pri:'medium',done:false,date:today()},
+    {id:6,text:'Schedule field visit — Pune cluster',pri:'low',done:false,date:today()},
+    {id:7,text:'Write blog: "Building IoT at 1,840ha scale"',pri:'low',done:false,date:today()},
+    {id:8,text:'Deploy v2.4.1 firmware to all devices',pri:'high',done:true,date:'2026-05-28'},
+    {id:9,text:'Onboard Field #042 (Pune sugarcane)',pri:'medium',done:true,date:'2026-05-28'}
+  ];
+
+  var defaultLogs=[
+    {id:1,text:'🚀 Shipped ML Pipeline v3.2 to production. Yield prediction accuracy jumped from 87% to 91.3%. Trained on 2.3M data points across all 23 active farms. Inference latency cut by 35% via TF-Lite quantization.',cat:'deployment',date:'2026-05-29'},
+    {id:2,text:'Onboarded Field #042 — 84 hectares of sugarcane in Pune. Deployed 8 soil moisture sensors + 4 weather stations. Total monitored area now stands at 1,840 hectares across 23 farms.',cat:'deployment',date:'2026-05-29'},
+    {id:3,text:'Pest detection CNN retrained on 12,000 newly labeled images. Precision climbed from 78.2% to 84.5%. Working on integrating SHAP for model explainability — farmers want to know WHY the AI flagged a pest.',cat:'research',date:'2026-05-28'},
+    {id:4,text:'Sprint 14 retrospective — completed 42 story points (target was 38). Big wins: ML v3.2, IoT firmware rollout, API latency optimization. Carrying over Marketplace MVP wireframes to Sprint 15.',cat:'planning',date:'2026-05-27'},
+    {id:5,text:'Pushed firmware v2.4.1 to all 147 IoT devices. OTA update completed in 4.2 hours with zero failures. Added support for new BME688 sensor (soil VOC + humidity).',cat:'deployment',date:'2026-05-27'},
+    {id:6,text:'Backend optimization sprint paying off — API p95 latency dropped from 187ms to 142ms. Big factors: TimescaleDB hypertable partitioning, Redis caching for weather data, and dropping a redundant join in the field-summary endpoint.',cat:'dev',date:'2026-05-26'},
+    {id:7,text:'Soil moisture model now integrated into the Field Mapping GIS overlay. Farmers can see heatmaps of soil hydration directly on the map. Real-time updates every 15 minutes.',cat:'dev',date:'2026-05-26'},
+    {id:8,text:'Hit a milestone — CropAccess now monitors 1,840 hectares! Started this project at 200ha six months ago. Active user count up to 89 daily.',cat:'planning',date:'2026-05-25'},
+    {id:9,text:'Initial project structure set up. Integrated IoT sensor mock data pipeline. Resolved CORS issue with field API.',cat:'dev',date:'2026-05-25'}
+  ];
+
+  var tasks=gs('tasks')||defaultTasks;
+  var milestones=gs('milestones')||defaultMs;
+  var todos=gs('todos')||defaultTodos;
+  var logs=gs('logs')||defaultLogs;
+  todos.forEach(function(t){if(t.priority&&!t.pri)t.pri=t.priority;if(!t.pri)t.pri='medium'});
+  logs.forEach(function(l){if(l.category&&!l.cat)l.cat=l.category;if(!l.cat)l.cat='dev'});
+  var nid=gs('nid')||200;
+  var filter='all';
+  var dragId=null;
+
+  function save(){ss('tasks',tasks);ss('milestones',milestones);ss('todos',todos);ss('logs',logs);ss('nid',nid)}
+  function id(){return++nid}
+
   /* ─── Toast ─── */
   var tt;
-  function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('show')},2200)}
+  function toast(m){var e=$('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('show')},2400)}
 
-  /* ─── $(id) helper ─── */
-  function $(x){return document.getElementById(x)}
+  /* ─── HUD Clock ─── */
+  function updateClock(){
+    var d=new Date();
+    var h=String(d.getHours()).padStart(2,'0');
+    var m=String(d.getMinutes()).padStart(2,'0');
+    var s=String(d.getSeconds()).padStart(2,'0');
+    $('hud-clock').textContent=h+':'+m+':'+s;
+  }
+  setInterval(updateClock,1000);updateClock();
 
   /* ─── Tabs ─── */
-  $('tabs').addEventListener('click',function(e){
-    var t=e.target.closest('.tab');
-    if(!t)return;
-    document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active')});
-    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
-    t.classList.add('active');
-    $('p-'+t.getAttribute('data-p')).classList.add('active');
-    renderAll();
+  document.querySelectorAll('.nav-cmd').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.nav-cmd').forEach(function(b){b.classList.remove('active')});
+      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+      btn.classList.add('active');
+      $('p-'+btn.getAttribute('data-p')).classList.add('active');
+      renderAll();
+    });
   });
 
-  /* ════════════════════════════════════════
-     PIPELINE
-     ════════════════════════════════════════ */
+  /* ─── MODULES grid ─── */
+  function renderModules(){
+    $('modules-grid').innerHTML=modules.map(function(m){
+      return '<div class="glass module-card" style="--p:'+m.pct+'%">'+
+        '<div class="module-head">'+
+          '<div class="module-icon">'+m.icon+'</div>'+
+          '<span class="module-status '+m.status+'">'+m.status+'</span>'+
+        '</div>'+
+        '<h3>'+m.name+'</h3>'+
+        '<div class="desc">'+m.desc+'</div>'+
+        '<div class="module-progress">'+
+          '<div class="bar"><div class="fill" style="width:'+m.pct+'%"></div></div>'+
+          '<span class="pct">'+m.pct+'%</span>'+
+        '</div>'+
+        '<div class="module-meta"><span>'+m.stat+'</span><span>v'+(1+Math.floor(m.pct/20))+'.'+Math.floor(m.pct/10%10)+'</span></div>'+
+      '</div>';
+    }).join('');
+  }
+
+  /* ─── ACTIVITY feed ─── */
+  function renderActivity(){
+    $('activity-feed').innerHTML=activity.map(function(a){
+      return '<div class="feed-item"><div class="feed-dot '+a.color+'"></div><div class="feed-content"><div class="msg">'+a.msg+'</div><div class="meta">'+a.meta+'</div></div></div>';
+    }).join('');
+  }
+
+  /* ─── MODULE BARS in analytics ─── */
+  function renderModuleBars(){
+    var el=$('module-bars');
+    if(!el)return;
+    el.innerHTML=modules.map(function(m){
+      return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-family:JetBrains Mono,monospace;font-size:11px;margin-bottom:4px"><span style="color:var(--text-bright)">'+m.icon+' '+m.name+'</span><span style="color:var(--neon-purple)">'+m.pct+'%</span></div><div style="height:6px;background:rgba(192,132,252,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+m.pct+'%;background:linear-gradient(90deg,var(--neon-purple),var(--neon-pink));border-radius:99px;box-shadow:0 0 6px rgba(192,132,252,.4)"></div></div></div>';
+    }).join('');
+  }
+
+  /* ─── PIPELINE ─── */
   $('pi-add').addEventListener('click',function(){
-    var inp=$('pi-input');
-    var v=inp.value.trim();
-    if(!v){inp.focus();inp.style.borderColor='#ef4444';setTimeout(function(){inp.style.borderColor=''},1000);return}
+    var inp=$('pi-input');var v=inp.value.trim();
+    if(!v){inp.focus();inp.style.borderColor='var(--neon-red)';setTimeout(function(){inp.style.borderColor=''},900);return}
     tasks.push({id:id(),title:v,type:$('pi-type').value,col:$('pi-col').value});
-    inp.value='';
-    save();renderPipeline();renderDash();
-    toast('Task added!');
+    inp.value='';save();renderPipeline();toast('Task deployed ✓');
   });
   $('pi-input').addEventListener('keydown',function(e){if(e.key==='Enter')$('pi-add').click()});
 
   var cols=['backlog','progress','review','done'];
   cols.forEach(function(c){
     var zone=$('z-'+c);
-    zone.addEventListener('dragover',function(e){e.preventDefault();zone.style.background='#d1fae5'});
-    zone.addEventListener('dragleave',function(){zone.style.background=''});
+    zone.addEventListener('dragover',function(e){e.preventDefault();zone.classList.add('drag-over')});
+    zone.addEventListener('dragleave',function(){zone.classList.remove('drag-over')});
     zone.addEventListener('drop',function(e){
-      e.preventDefault();zone.style.background='';
+      e.preventDefault();zone.classList.remove('drag-over');
       if(dragId!==null){
         for(var i=0;i<tasks.length;i++){if(tasks[i].id===dragId){tasks[i].col=c;break}}
-        dragId=null;save();renderPipeline();renderDash();
+        dragId=null;save();renderPipeline();
       }
     });
     zone.addEventListener('click',function(e){
-      var btn=e.target.closest('.x-btn');
-      if(!btn)return;
+      var btn=e.target.closest('.x-btn');if(!btn)return;
       var xid=Number(btn.getAttribute('data-id'));
       tasks=tasks.filter(function(t){return t.id!==xid});
-      save();renderPipeline();renderDash();toast('Removed');
+      save();renderPipeline();toast('Task removed');
     });
   });
 
@@ -294,34 +857,29 @@ textarea:focus{border-color:#2d7a4f}
       var zone=$('z-'+c);
       var items=tasks.filter(function(t){return t.col===c});
       $('c-'+c).textContent=items.length;
-      if(!items.length){zone.innerHTML='<div class="empty" style="padding:16px;font-size:12px">Drop here</div>';return}
+      if(!items.length){zone.innerHTML='<div class="empty" style="padding:20px;font-size:10px">// EMPTY</div>';return}
       zone.innerHTML=items.map(function(t){
-        return '<div class="col-card" draggable="true" data-id="'+t.id+'">'+
+        return '<div class="kcard" draggable="true" data-id="'+t.id+'">'+
           '<div class="title">'+esc(t.title)+'</div>'+
-          '<div class="meta"><span class="tag tag-'+t.type+'">'+t.type+'</span>'+
-          '<button class="x-btn" data-id="'+t.id+'">&times;</button></div></div>';
+          '<div class="row"><span class="tag tag-'+t.type+'">'+t.type+'</span>'+
+          '<button class="x-btn" data-id="'+t.id+'">×</button></div></div>';
       }).join('');
-      zone.querySelectorAll('.col-card').forEach(function(card){
-        card.addEventListener('dragstart',function(){dragId=Number(card.getAttribute('data-id'));card.style.opacity='.4'});
-        card.addEventListener('dragend',function(){card.style.opacity='1'});
+      zone.querySelectorAll('.kcard').forEach(function(card){
+        card.addEventListener('dragstart',function(){dragId=Number(card.getAttribute('data-id'));card.classList.add('drag')});
+        card.addEventListener('dragend',function(){card.classList.remove('drag')});
       });
     });
   }
 
-  /* ════════════════════════════════════════
-     ROADMAP
-     ════════════════════════════════════════ */
+  /* ─── ROADMAP ─── */
   $('ms-date').value=today();
-
   $('ms-add').addEventListener('click',function(){
-    var inp=$('ms-input');
-    var v=inp.value.trim();
-    if(!v){inp.focus();inp.style.borderColor='#ef4444';setTimeout(function(){inp.style.borderColor=''},1000);return}
+    var inp=$('ms-input');var v=inp.value.trim();
+    if(!v){inp.focus();inp.style.borderColor='var(--neon-red)';setTimeout(function(){inp.style.borderColor=''},900);return}
     milestones.push({id:id(),title:v,date:$('ms-date').value,status:$('ms-status').value});
     inp.value='';
     milestones.sort(function(a,b){return a.date>b.date?1:-1});
-    save();renderMilestones();renderDash();
-    toast('Milestone added!');
+    save();renderMilestones();toast('Milestone locked in ✓');
   });
   $('ms-input').addEventListener('keydown',function(e){if(e.key==='Enter')$('ms-add').click()});
 
@@ -331,54 +889,46 @@ textarea:focus{border-color:#2d7a4f}
     if(btn){
       var xid=Number(btn.getAttribute('data-id'));
       milestones=milestones.filter(function(m){return m.id!==xid});
-      save();renderMilestones();renderDash();toast('Removed');
+      save();renderMilestones();toast('Milestone removed');
     }
     if(badge){
       var xid=Number(badge.getAttribute('data-id'));
       var cycle=['not-started','in-progress','done','blocked'];
       for(var i=0;i<milestones.length;i++){
         if(milestones[i].id===xid){
-          var ci=cycle.indexOf(milestones[i].status);
-          milestones[i].status=cycle[(ci+1)%4];
-          break;
+          milestones[i].status=cycle[(cycle.indexOf(milestones[i].status)+1)%4];break;
         }
       }
-      save();renderMilestones();renderDash();
+      save();renderMilestones();
     }
   });
 
   function renderMilestones(){
     var el=$('ms-list');
-    if(!milestones.length){el.innerHTML='<div class="empty">No milestones. Add one above.</div>';return}
+    if(!milestones.length){el.innerHTML='<div class="empty">// NO MILESTONES</div>';return}
     el.innerHTML=milestones.map(function(m){
-      return '<div class="item"><div class="ms-dot '+m.status+'"></div>'+
-        '<div class="item-text"><strong>'+esc(m.title)+'</strong><br><span style="font-size:12px;color:#6b7280">Target: '+fmt(m.date)+'</span></div>'+
-        '<span class="ms-badge '+m.status+'" data-id="'+m.id+'" title="Click to change">'+m.status.replace(/-/g,' ')+'</span>'+
-        '<button class="x-btn" data-id="'+m.id+'">&times;</button></div>';
+      return '<div class="tl-item '+m.status+'">'+
+        '<div class="row">'+
+          '<div class="info"><div class="ttl">'+esc(m.title)+'</div><div class="dt">TARGET · '+fmt(m.date)+'</div></div>'+
+          '<span class="ms-badge '+m.status+'" data-id="'+m.id+'">'+m.status.replace(/-/g,' ')+'</span>'+
+          '<button class="x-btn" data-id="'+m.id+'">×</button>'+
+        '</div></div>';
     }).join('');
   }
 
-  /* ════════════════════════════════════════
-     TO-DO
-     ════════════════════════════════════════ */
+  /* ─── TO-DO ─── */
   $('td-add').addEventListener('click',function(){
-    var inp=$('td-input');
-    var v=inp.value.trim();
-    if(!v){inp.focus();inp.style.borderColor='#ef4444';setTimeout(function(){inp.style.borderColor=''},1000);return}
+    var inp=$('td-input');var v=inp.value.trim();
+    if(!v){inp.focus();inp.style.borderColor='var(--neon-red)';setTimeout(function(){inp.style.borderColor=''},900);return}
     todos.unshift({id:id(),text:v,pri:$('td-pri').value,done:false,date:today()});
-    inp.value='';
-    save();renderTodos();renderDash();
-    toast('Task added!');
+    inp.value='';save();renderTodos();toast('Task enqueued ✓');
   });
   $('td-input').addEventListener('keydown',function(e){if(e.key==='Enter')$('td-add').click()});
 
   $('td-filters').addEventListener('click',function(e){
-    var btn=e.target.closest('.fbtn');
-    if(!btn)return;
+    var btn=e.target.closest('.fbtn');if(!btn)return;
     document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('active')});
-    btn.classList.add('active');
-    filter=btn.getAttribute('data-f');
-    renderTodos();
+    btn.classList.add('active');filter=btn.getAttribute('data-f');renderTodos();
   });
 
   $('td-list').addEventListener('click',function(e){
@@ -387,12 +937,12 @@ textarea:focus{border-color:#2d7a4f}
     if(chk){
       var xid=Number(chk.getAttribute('data-id'));
       for(var i=0;i<todos.length;i++){if(todos[i].id===xid){todos[i].done=!todos[i].done;break}}
-      save();renderTodos();renderDash();
+      save();renderTodos();
     }
     if(btn){
       var xid=Number(btn.getAttribute('data-id'));
       todos=todos.filter(function(t){return t.id!==xid});
-      save();renderTodos();renderDash();toast('Removed');
+      save();renderTodos();toast('Task removed');
     }
   });
 
@@ -402,96 +952,77 @@ textarea:focus{border-color:#2d7a4f}
     else if(filter==='done')list=todos.filter(function(t){return t.done});
     else if(filter==='high')list=todos.filter(function(t){return t.pri==='high'});
     var el=$('td-list');
-    if(!list.length){el.innerHTML='<div class="empty">No tasks here.</div>';return}
+    if(!list.length){el.innerHTML='<div class="empty">// QUEUE EMPTY</div>';return}
     el.innerHTML=list.map(function(t){
-      return '<div class="item"><div class="check'+(t.done?' on':'')+'" data-id="'+t.id+'"></div>'+
-        '<span class="item-text'+(t.done?' done-text':'')+'">'+esc(t.text)+'</span>'+
-        '<span class="tag tag-'+t.pri+'">'+t.pri+'</span>'+
-        '<span style="font-size:11px;color:#9ca3af">'+t.date+'</span>'+
-        '<button class="x-btn" data-id="'+t.id+'">&times;</button></div>';
+      return '<div class="todo-item">'+
+        '<div class="check'+(t.done?' on':'')+'" data-id="'+t.id+'"></div>'+
+        '<span class="todo-text'+(t.done?' done-text':'')+'">'+esc(t.text)+'</span>'+
+        '<div class="todo-meta">'+
+          '<span class="tag-'+t.pri+'">'+t.pri+'</span>'+
+          '<span class="todo-date">'+t.date+'</span>'+
+          '<button class="x-btn" data-id="'+t.id+'">×</button>'+
+        '</div></div>';
     }).join('');
   }
 
-  /* ════════════════════════════════════════
-     PROGRESS LOG
-     ════════════════════════════════════════ */
+  /* ─── PROGRESS LOG ─── */
   $('lg-add').addEventListener('click',function(){
-    var ta=$('lg-text');
-    var v=ta.value.trim();
-    if(!v){ta.focus();ta.style.borderColor='#ef4444';setTimeout(function(){ta.style.borderColor=''},1000);return}
+    var ta=$('lg-text');var v=ta.value.trim();
+    if(!v){ta.focus();ta.style.borderColor='var(--neon-red)';setTimeout(function(){ta.style.borderColor=''},900);return}
     logs.unshift({id:id(),text:v,cat:$('lg-cat').value,date:today()});
-    ta.value='';
-    save();renderLogs();renderDash();
-    toast('Progress logged!');
+    ta.value='';save();renderLogs();toast('Log transmitted ✓');
   });
 
   $('lg-list').addEventListener('click',function(e){
-    var btn=e.target.closest('.x-btn');
-    if(!btn)return;
+    var btn=e.target.closest('.x-btn');if(!btn)return;
     var xid=Number(btn.getAttribute('data-id'));
     logs=logs.filter(function(l){return l.id!==xid});
-    save();renderLogs();renderDash();toast('Removed');
+    save();renderLogs();toast('Log removed');
   });
 
   function renderLogs(){
     var el=$('lg-list');
-    if(!logs.length){el.innerHTML='<div class="empty">No logs yet.</div>';return}
-    el.innerHTML='<div class="card">'+logs.map(function(l){
-      return '<div class="log-entry"><div class="log-head"><span class="log-date">'+fmt(l.date)+'</span>'+
-        '<span class="tag tag-'+l.cat+'">'+l.cat+'</span>'+
-        '<button class="x-btn" data-id="'+l.id+'" style="margin-left:auto">&times;</button></div>'+
+    if(!logs.length){el.innerHTML='<div class="empty">// NO TRANSMISSIONS</div>';return}
+    el.innerHTML=logs.map(function(l){
+      return '<div class="log-entry">'+
+        '<div class="log-head">'+
+          '<span class="log-date">'+fmt(l.date)+'</span>'+
+          '<span class="log-cat '+l.cat+'">'+l.cat+'</span>'+
+          '<button class="x-btn" data-id="'+l.id+'" style="margin-left:auto">×</button>'+
+        '</div>'+
         '<div class="log-body">'+esc(l.text)+'</div></div>';
-    }).join('')+'</div>';
+    }).join('');
   }
 
-  /* ════════════════════════════════════════
-     DASHBOARD
-     ════════════════════════════════════════ */
-  function renderDash(){
-    var total=tasks.length;
-    var dn=tasks.filter(function(t){return t.col==='done'}).length;
-    var ip=tasks.filter(function(t){return t.col==='progress'}).length;
-    var td=today();
-    var tt=todos.filter(function(t){return t.date===td});
-    var tc=tt.filter(function(t){return t.done}).length;
-    var mc=milestones.filter(function(m){return m.status==='done'}).length;
-
-    $('stats').innerHTML=
-      '<div class="stat"><div class="stat-label">Tasks Done</div><div class="stat-num green">'+dn+'/'+total+'</div></div>'+
-      '<div class="stat"><div class="stat-label">In Progress</div><div class="stat-num blue">'+ip+'</div></div>'+
-      '<div class="stat"><div class="stat-label">Today\'s Todos</div><div class="stat-num amber">'+tc+'/'+tt.length+'</div></div>'+
-      '<div class="stat"><div class="stat-label">Milestones</div><div class="stat-num red">'+mc+'/'+milestones.length+'</div></div>';
-
-    var dtEl=$('dash-today');
-    if(!tt.length){dtEl.innerHTML='<div class="empty">No tasks for today. Add some in To-Do.</div>'}
-    else{
-      dtEl.innerHTML=tt.slice(0,5).map(function(t){
-        return '<div class="item" style="margin-bottom:6px"><div class="check'+(t.done?' on':'')+'" data-id="'+t.id+'"></div>'+
-          '<span class="item-text'+(t.done?' done-text':'')+'">'+esc(t.text)+'</span>'+
-          '<span class="tag tag-'+t.pri+'">'+t.pri+'</span></div>';
-      }).join('');
-      dtEl.addEventListener('click',function(e){
-        var chk=e.target.closest('.check');
-        if(!chk)return;
-        var xid=Number(chk.getAttribute('data-id'));
-        for(var i=0;i<todos.length;i++){if(todos[i].id===xid){todos[i].done=!todos[i].done;break}}
-        save();renderDash();
-      });
-    }
-
-    var dlEl=$('dash-logs');
-    if(!logs.length){dlEl.innerHTML='<div class="empty">No logs yet.</div>'}
-    else{
-      dlEl.innerHTML=logs.slice(0,3).map(function(l){
-        return '<div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><div class="log-head"><span class="log-date">'+fmt(l.date)+'</span><span class="tag tag-'+l.cat+'">'+l.cat+'</span></div>'+
-          '<div style="font-size:13px;color:#374151;margin-top:4px">'+esc(l.text).substring(0,120)+(l.text.length>120?'...':'')+'</div></div>';
-      }).join('');
-    }
+  /* ─── Counter animation ─── */
+  function animateCounters(){
+    document.querySelectorAll('[data-count]').forEach(function(el){
+      var target=parseFloat(el.getAttribute('data-count'));
+      var isPct=el.classList.contains('value')||el.classList.contains('ring-val');
+      var d=el.textContent;
+      var dur=1400;var start=null;
+      function step(t){
+        if(!start)start=t;
+        var p=Math.min((t-start)/dur,1);
+        var e=1-Math.pow(1-p,3);
+        var v=target*e;
+        if(target<10)el.firstChild&&(el.firstChild.nodeType===3?el.firstChild.nodeValue=v.toFixed(1):0);
+        else if(target>=1000)el.textContent=Math.round(v).toLocaleString();
+        else el.textContent=Math.round(v);
+        if(p<1)requestAnimationFrame(step);
+        else el.textContent=d;
+      }
+      requestAnimationFrame(step);
+    });
   }
 
-  /* ─── Render all ─── */
-  function renderAll(){renderDash();renderPipeline();renderMilestones();renderTodos();renderLogs()}
+  /* ─── Init ─── */
+  function renderAll(){
+    renderModules();renderActivity();renderModuleBars();
+    renderPipeline();renderMilestones();renderTodos();renderLogs();
+  }
   renderAll();
+  setTimeout(animateCounters,200);
 
 })();
 </script>
